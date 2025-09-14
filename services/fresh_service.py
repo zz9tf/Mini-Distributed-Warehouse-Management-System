@@ -13,6 +13,7 @@ from concurrent import futures
 
 import warehouse_pb2
 import warehouse_pb2_grpc
+from logger_client import logger_client
 
 
 class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
@@ -68,6 +69,17 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                         left=new_stock
                     )
                     print(f"   📤 Response: status={response.status}, left={response.left}")
+                    
+                    # 记录操作日志
+                    logger_client.log_operation(
+                        service_name="FreshService",
+                        operation="PlaceOrder",
+                        request_data={"category": category, "subcategory": subcategory, "item": item},
+                        response_data={"status": response.status, "left": response.left},
+                        client_ip=context.peer(),
+                        success=True
+                    )
+                    
                     return response
                 else:
                     print(f"   ❌ [SENDING] Out of stock")
@@ -76,6 +88,18 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                         left=0
                     )
                     print(f"   📤 Response: status={response.status}, left={response.left}")
+                    
+                    # 记录操作日志
+                    logger_client.log_operation(
+                        service_name="FreshService",
+                        operation="PlaceOrder",
+                        request_data={"category": category, "subcategory": subcategory, "item": item},
+                        response_data={"status": response.status, "left": response.left},
+                        client_ip=context.peer(),
+                        success=False,
+                        error_message="Out of stock"
+                    )
+                    
                     return response
             else:
                 print(f"   ❌ [SENDING] Item not found in inventory")
@@ -84,6 +108,18 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                     left=0
                 )
                 print(f"   📤 Response: status={response.status}, left={response.left}")
+                
+                # 记录操作日志
+                logger_client.log_operation(
+                    service_name="FreshService",
+                    operation="PlaceOrder",
+                    request_data={"category": category, "subcategory": subcategory, "item": item},
+                    response_data={"status": response.status, "left": response.left},
+                    client_ip=context.peer(),
+                    success=False,
+                    error_message="Item not found in inventory"
+                )
+                
                 return response
                 
         except Exception as e:
@@ -94,6 +130,18 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 left=0
             )
             print(f"   📤 Response: status={response.status}, left={response.left}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FreshService",
+                operation="PlaceOrder",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"status": response.status, "left": response.left},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
     
     def PutItem(self, request, context):
@@ -126,6 +174,17 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Added {item} to {category}/{subcategory}, now {self.inventory[category][subcategory]}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FreshService",
+                operation="PutItem",
+                request_data={"category": category, "subcategory": subcategory, "item": item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except Exception as e:
@@ -136,6 +195,18 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FreshService",
+                operation="PutItem",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
     
     def UpdateItem(self, request, context):
@@ -168,6 +239,17 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Updated {category}/{subcategory} to {item}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FreshService",
+                operation="UpdateItem",
+                request_data={"category": category, "subcategory": subcategory, "item": item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except Exception as e:
@@ -178,6 +260,18 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FreshService",
+                operation="UpdateItem",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
     
     def ListItems(self, request, context):
@@ -199,6 +293,17 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   ✅ [SENDING] ListItems successful")
             response = warehouse_pb2.ListItemsResponse(items=items)
             print(f"   📤 Response: {len(response.items)} items")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FreshService",
+                operation="ListItems",
+                request_data={"category": category, "subcategory": subcategory},
+                response_data={"items_count": len(response.items), "items": response.items},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except Exception as e:
@@ -206,6 +311,18 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📤 [SENDING] Error response")
             response = warehouse_pb2.ListItemsResponse(items=[])
             print(f"   📤 Response: {len(response.items)} items")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FreshService",
+                operation="ListItems",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', '')},
+                response_data={"items_count": len(response.items), "items": response.items},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
 
 

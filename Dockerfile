@@ -17,6 +17,9 @@ RUN apt-get update && apt-get install -y \
 # 复制源代码
 COPY . .
 
+# 确保日志目录存在
+RUN mkdir -p /app/logs
+
 # 暴露端口
 EXPOSE 50050 50051 50052 50053 50054
 

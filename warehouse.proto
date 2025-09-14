@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package warehouse;
 
+// ==================== 仓库服务消息定义 ====================
+
 // 下单请求
 message OrderRequest {
   string category = 1;      // 一级分类
@@ -15,47 +17,133 @@ message OrderResponse {
   int32 left = 2;           // 剩余库存
 }
 
-// ------------------- 新增接口所需消息 -------------------
-
-// 放入货物
+// 放入货物请求
 message PutItemRequest {
   string category = 1;      
   string subcategory = 2;
   string item = 3;          
 }
 
+// 放入货物响应
 message PutItemResponse {
   bool success = 1;
   string message = 2;
 }
 
-// 更新货物
+// 更新货物请求
 message UpdateItemRequest {
   string category = 1;
   string subcategory = 2;
   int32 item = 3;
 }
 
+// 更新货物响应
 message UpdateItemResponse {
   bool success = 1;
   string message = 2;
 }
 
-// 查询当前仓库
+// 查询当前仓库请求
 message ListItemsRequest {
   string category = 1;
   string subcategory = 2;
 }
 
+// 查询当前仓库响应
 message ListItemsResponse {
   repeated string items = 1;  // 当前子类下所有物品
 }
 
-// ------------------- Service 定义 -------------------
+// ==================== 日志服务消息定义 ====================
+
+// 日志记录请求
+message LogRequest {
+  string service_name = 1;      // 服务名称
+  string operation = 2;         // 操作类型
+  string client_ip = 3;         // 客户端IP
+  bool success = 4;             // 操作是否成功
+  string request_data = 5;      // 请求数据（JSON字符串）
+  string response_data = 6;     // 响应数据（JSON字符串）
+  string error_message = 7;     // 错误信息（可选）
+}
+
+// 日志记录响应
+message LogResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 查询日志请求
+message QueryLogsRequest {
+  string service_name = 1;      // 服务名称过滤（可选）
+  string operation = 2;         // 操作类型过滤（可选）
+  int32 limit = 3;              // 返回记录数量限制
+}
+
+// 查询日志响应
+message QueryLogsResponse {
+  repeated LogEntry logs = 1;
+  int32 total_count = 2;
+}
+
+// 日志条目
+message LogEntry {
+  string timestamp = 1;
+  string service_name = 2;
+  string operation = 3;
+  string client_ip = 4;
+  bool success = 5;
+  string request_data = 6;
+  string response_data = 7;
+  string error_message = 8;
+}
+
+// 统计信息请求
+message StatsRequest {
+  // 空请求，返回所有统计信息
+}
+
+// 统计信息响应
+message StatsResponse {
+  int32 total_operations = 1;
+  int32 successful_operations = 2;
+  int32 failed_operations = 3;
+  double success_rate = 4;
+  repeated ServiceStats service_stats = 5;
+  repeated OperationStats operation_stats = 6;
+}
+
+// 服务统计
+message ServiceStats {
+  string service_name = 1;
+  int32 total = 2;
+  int32 success = 3;
+  int32 failed = 4;
+  double success_rate = 5;
+}
+
+// 操作统计
+message OperationStats {
+  string operation = 1;
+  int32 total = 2;
+  int32 success = 3;
+  int32 failed = 4;
+  double success_rate = 5;
+}
+
+// ==================== 服务定义 ====================
+
+// 仓库服务
 service OrderService {
   rpc PlaceOrder(OrderRequest) returns (OrderResponse);
-
   rpc PutItem(PutItemRequest) returns (PutItemResponse);
   rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse);
   rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+}
+
+// 日志服务
+service LoggerService {
+  rpc LogOperation(LogRequest) returns (LogResponse);
+  rpc QueryLogs(QueryLogsRequest) returns (QueryLogsResponse);
+  rpc GetStats(StatsRequest) returns (StatsResponse);
 }
