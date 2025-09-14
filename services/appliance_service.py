@@ -143,49 +143,42 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
     
-    def GetItem(self, request, context):
-        """取出货物"""
+    def UpdateItem(self, request, context):
+        """更新货物"""
         try:
             category = request.category.lower()
             subcategory = request.subcategory.lower()
-            item = request.item.lower()
+            item = request.item
             
-            print(f"🏠 [RECEIVED] ApplianceService - GetItem Request:")
+            print(f"🏠 [RECEIVED] ApplianceService - UpdateItem Request:")
             print(f"   📥 Category: {category}")
             print(f"   📥 Subcategory: {subcategory}")
             print(f"   📥 Item: {item}")
             print(f"   📥 Client IP: {context.peer()}")
             
-            if (category in self.inventory and 
-                subcategory in self.inventory[category] and 
-                item in self.inventory[category][subcategory] and
-                self.inventory[category][subcategory][item] > 0):
-                
-                old_count = self.inventory[category][subcategory][item]
-                self.inventory[category][subcategory][item] -= 1
-                new_count = self.inventory[category][subcategory][item]
-                
-                print(f"   📊 Stock before: {old_count}, after: {new_count}")
-                print(f"   ✅ [SENDING] GetItem successful")
-                response = warehouse_pb2.GetItemResponse(
-                    success=True,
-                    message=f"Retrieved {item} from {category}/{subcategory}"
-                )
-                print(f"   📤 Response: success={response.success}, message={response.message}")
-                return response
-            else:
-                print(f"   ❌ [SENDING] Item not available")
-                response = warehouse_pb2.GetItemResponse(
-                    success=False,
-                    message="Item not available"
-                )
-                print(f"   📤 Response: success={response.success}, message={response.message}")
-                return response
-                
+            if category not in self.inventory:
+                self.inventory[category] = {}
+                print(f"   📝 Created new category: {category}")
+            if subcategory not in self.inventory[category]:
+                self.inventory[category][subcategory] = 0
+                print(f"   📝 Created new subcategory: {subcategory}")
+            
+            old_count = self.inventory[category][subcategory]
+            self.inventory[category][subcategory] = item
+            print(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
+            
+            print(f"   ✅ [SENDING] UpdateItem successful")
+            response = warehouse_pb2.UpdateItemResponse(
+                success=True,
+                message=f"Updated {category}/{subcategory} to {item}"
+            )
+            print(f"   📤 Response: success={response.success}, message={response.message}")
+            return response
+            
         except Exception as e:
-            print(f"❌ [ERROR] ApplianceService GetItem error: {e}")
+            print(f"❌ [ERROR] ApplianceService UpdateItem error: {e}")
             print(f"   📤 [SENDING] Error response")
-            response = warehouse_pb2.GetItemResponse(
+            response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )

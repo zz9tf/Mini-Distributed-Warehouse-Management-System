@@ -42,7 +42,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
         try:
             category = request.category.lower()
             subcategory = request.subcategory.lower()
-            item = request.item.lower()
+            item = int(request.item)
             
             print(f"🥬 [RECEIVED] FreshService - PlaceOrder Request:")
             print(f"   📥 Category: {category}")
@@ -52,16 +52,15 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             
             # 检查库存
             if (category in self.inventory and 
-                subcategory in self.inventory[category] and 
-                item in self.inventory[category][subcategory]):
+                subcategory in self.inventory[category]):
                 
-                current_stock = self.inventory[category][subcategory][item]
+                current_stock = self.inventory[category][subcategory]
                 print(f"   📊 Current stock: {current_stock}")
                 
-                if current_stock > 0:
+                if current_stock >= item:
                     # 减少库存
-                    self.inventory[category][subcategory][item] -= 1
-                    new_stock = self.inventory[category][subcategory][item]
+                    self.inventory[category][subcategory] -= item
+                    new_stock = self.inventory[category][subcategory]
                     
                     print(f"   ✅ [SENDING] Order successful - Stock reduced to: {new_stock}")
                     response = warehouse_pb2.OrderResponse(
@@ -102,7 +101,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
         try:
             category = request.category.lower()
             subcategory = request.subcategory.lower()
-            item = request.item.lower()
+            item = int(request.item)
             
             print(f"🥬 [RECEIVED] FreshService - PutItem Request:")
             print(f"   📥 Category: {category}")
@@ -114,21 +113,17 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 self.inventory[category] = {}
                 print(f"   📝 Created new category: {category}")
             if subcategory not in self.inventory[category]:
-                self.inventory[category][subcategory] = {}
+                self.inventory[category][subcategory] = 0
                 print(f"   📝 Created new subcategory: {subcategory}")
             
-            old_count = self.inventory[category][subcategory].get(item, 0)
-            if item in self.inventory[category][subcategory]:
-                self.inventory[category][subcategory][item] += 1
-                print(f"   📈 Incremented existing item: {item} ({old_count} → {self.inventory[category][subcategory][item]})")
-            else:
-                self.inventory[category][subcategory][item] = 1
-                print(f"   🆕 Added new item: {item} (count: 1)")
+            old_count = self.inventory[category][subcategory]
+            self.inventory[category][subcategory] += item
+            print(f"   📈 Incremented existing {category}/{subcategory}: {old_count} → {self.inventory[category][subcategory]}")
             
             print(f"   ✅ [SENDING] PutItem successful")
             response = warehouse_pb2.PutItemResponse(
                 success=True,
-                message=f"Added {item} to {category}/{subcategory}"
+                message=f"Added {item} to {category}/{subcategory}, now {self.inventory[category][subcategory]}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
@@ -143,49 +138,42 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
     
-    def GetItem(self, request, context):
-        """取出货物"""
+    def UpdateItem(self, request, context):
+        """更新货物"""
         try:
             category = request.category.lower()
             subcategory = request.subcategory.lower()
-            item = request.item.lower()
+            item = request.item
             
-            print(f"🥬 [RECEIVED] FreshService - GetItem Request:")
+            print(f"🥬 [RECEIVED] FreshService - UpdateItem Request:")
             print(f"   📥 Category: {category}")
             print(f"   📥 Subcategory: {subcategory}")
             print(f"   📥 Item: {item}")
             print(f"   📥 Client IP: {context.peer()}")
             
-            if (category in self.inventory and 
-                subcategory in self.inventory[category] and 
-                item in self.inventory[category][subcategory] and
-                self.inventory[category][subcategory][item] > 0):
-                
-                old_count = self.inventory[category][subcategory][item]
-                self.inventory[category][subcategory][item] -= 1
-                new_count = self.inventory[category][subcategory][item]
-                
-                print(f"   📊 Stock before: {old_count}, after: {new_count}")
-                print(f"   ✅ [SENDING] GetItem successful")
-                response = warehouse_pb2.GetItemResponse(
-                    success=True,
-                    message=f"Retrieved {item} from {category}/{subcategory}"
-                )
-                print(f"   📤 Response: success={response.success}, message={response.message}")
-                return response
-            else:
-                print(f"   ❌ [SENDING] Item not available")
-                response = warehouse_pb2.GetItemResponse(
-                    success=False,
-                    message="Item not available"
-                )
-                print(f"   📤 Response: success={response.success}, message={response.message}")
-                return response
-                
+            if category not in self.inventory:
+                self.inventory[category] = {}
+                print(f"   📝 Created new category: {category}")
+            if subcategory not in self.inventory[category]:
+                self.inventory[category][subcategory] = 0
+                print(f"   📝 Created new subcategory: {subcategory}")
+            
+            old_count = self.inventory[category][subcategory]
+            self.inventory[category][subcategory] = item
+            print(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
+            
+            print(f"   ✅ [SENDING] UpdateItem successful")
+            response = warehouse_pb2.UpdateItemResponse(
+                success=True,
+                message=f"Updated {category}/{subcategory} to {item}"
+            )
+            print(f"   📤 Response: success={response.success}, message={response.message}")
+            return response
+            
         except Exception as e:
-            print(f"❌ [ERROR] FreshService GetItem error: {e}")
+            print(f"❌ [ERROR] FreshService UpdateItem error: {e}")
             print(f"   📤 [SENDING] Error response")
-            response = warehouse_pb2.GetItemResponse(
+            response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )
@@ -204,7 +192,6 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📥 Client IP: {context.peer()}")
             
             items = []
-            print(self.inventory[category][subcategory])
             if (category in self.inventory and 
                 subcategory in self.inventory[category]):
                 items.append(str(self.inventory[category][subcategory]))

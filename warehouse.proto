@@ -29,14 +29,14 @@ message PutItemResponse {
   string message = 2;
 }
 
-// 取出货物
-message GetItemRequest {
+// 更新货物
+message UpdateItemRequest {
   string category = 1;
   string subcategory = 2;
-  string item = 3;
+  int32 item = 3;
 }
 
-message GetItemResponse {
+message UpdateItemResponse {
   bool success = 1;
   string message = 2;
 }
@@ -56,6 +56,6 @@ service OrderService {
   rpc PlaceOrder(OrderRequest) returns (OrderResponse);
 
   rpc PutItem(PutItemRequest) returns (PutItemResponse);
-  rpc GetItem(GetItemRequest) returns (GetItemResponse);
+  rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse);
   rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
 }

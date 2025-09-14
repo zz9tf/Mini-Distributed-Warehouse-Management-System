@@ -103,10 +103,10 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
     
-    def GetItem(self, request, context):
-        """取出货物 - 转发给FreshService"""
+    def UpdateItem(self, request, context):
+        """更新货物 - 转发给FreshService"""
         try:
-            print(f"🍎 [RECEIVED] FoodService - GetItem Request:")
+            print(f"🍎 [RECEIVED] FoodService - UpdateItem Request:")
             print(f"   📥 Category: {request.category}")
             print(f"   📥 Subcategory: {request.subcategory}")
             print(f"   📥 Item: {request.item}")
@@ -114,7 +114,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   🔄 [FORWARDING] Sending to FreshService...")
             
             # 转发给FreshService
-            response = self.fresh_service_stub.GetItem(request)
+            response = self.fresh_service_stub.UpdateItem(request)
             
             print(f"   📨 [RECEIVED] Response from FreshService:")
             print(f"   📨 Success: {response.success}")
@@ -123,18 +123,18 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] FoodService GetItem gRPC error: {e}")
+            print(f"❌ [ERROR] FoodService UpdateItem gRPC error: {e}")
             print(f"   📤 [SENDING] Service unavailable response")
-            response = warehouse_pb2.GetItemResponse(
+            response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message="Service unavailable"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
         except Exception as e:
-            print(f"❌ [ERROR] FoodService GetItem error: {e}")
+            print(f"❌ [ERROR] FoodService UpdateItem error: {e}")
             print(f"   📤 [SENDING] Error response")
-            response = warehouse_pb2.GetItemResponse(
+            response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )

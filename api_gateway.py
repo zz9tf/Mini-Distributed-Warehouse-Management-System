@@ -132,10 +132,10 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
     
-    def GetItem(self, request, context):
-        """取出货物 - 路由到相应服务"""
+    def UpdateItem(self, request, context):
+        """更新货物 - 路由到相应服务"""
         try:
-            print(f"🌐 [RECEIVED] API Gateway - GetItem Request:")
+            print(f"🌐 [RECEIVED] API Gateway - UpdateItem Request:")
             print(f"   📥 Category: {request.category}")
             print(f"   📥 Subcategory: {request.subcategory}")
             print(f"   📥 Item: {request.item}")
@@ -147,7 +147,7 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   🎯 [ROUTING] Selected service: {service_name}")
             print(f"   🔄 [FORWARDING] Sending to {service_name}...")
             
-            response = target_service.GetItem(request)
+            response = target_service.UpdateItem(request)
             
             print(f"   📨 [RECEIVED] Response from {service_name}:")
             print(f"   📨 Success: {response.success}")
@@ -156,18 +156,18 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] API Gateway GetItem gRPC error: {e}")
+            print(f"❌ [ERROR] API Gateway UpdateItem gRPC error: {e}")
             print(f"   📤 [SENDING] Service unavailable response")
-            response = warehouse_pb2.GetItemResponse(
+            response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message="Service unavailable"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
         except Exception as e:
-            print(f"❌ [ERROR] API Gateway GetItem error: {e}")
+            print(f"❌ [ERROR] API Gateway UpdateItem error: {e}")
             print(f"   📤 [SENDING] Error response")
-            response = warehouse_pb2.GetItemResponse(
+            response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )

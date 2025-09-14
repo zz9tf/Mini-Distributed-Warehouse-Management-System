@@ -117,39 +117,39 @@ class WarehouseTestClient:
             print(f"   📨 [FAILED] PutItem failed due to exception")
             return None
     
-    def test_get_item(self, category, subcategory, item):
-        """测试取出货物功能"""
+    def test_update_item(self, category, subcategory, item):
+        """测试更新货物功能"""
         try:
-            print(f"\n📤 [SENDING] TestClient - GetItem Request:")
+            print(f"\n📤 [SENDING] TestClient - UpdateItem Request:")
             print(f"   📤 Category: {category}")
             print(f"   📤 Subcategory: {subcategory}")
             print(f"   📤 Item: {item}")
             
-            # 创建取出货物请求
-            request = warehouse_pb2.GetItemRequest(
+            # 创建更新货物请求
+            request = warehouse_pb2.UpdateItemRequest(
                 category=category,
                 subcategory=subcategory,
                 item=item
             )
             
             print(f"   🔄 [CALLING] Sending request to API Gateway...")
-            # 调用取出货物方法
-            response = self.stub.GetItem(request)
+            # 调用更新货物方法
+            response = self.stub.UpdateItem(request)
             
             print(f"   📨 [RECEIVED] Response from API Gateway:")
             print(f"   📨 Success: {response.success}")
             print(f"   📨 Message: {response.message}")
-            print(f"   ✅ [SUCCESS] GetItem completed")
+            print(f"   ✅ [SUCCESS] UpdateItem completed")
             
             return response
             
         except grpc.RpcError as e:
             print(f"❌ [ERROR] gRPC Error: {e}")
-            print(f"   📨 [FAILED] GetItem failed due to gRPC error")
+            print(f"   📨 [FAILED] UpdateItem failed due to gRPC error")
             return None
         except Exception as e:
-            print(f"❌ [ERROR] GetItem failed: {e}")
-            print(f"   📨 [FAILED] GetItem failed due to exception")
+            print(f"❌ [ERROR] UpdateItem failed: {e}")
+            print(f"   📨 [FAILED] UpdateItem failed due to exception")
             return None
     
     def test_list_items(self, category, subcategory):
@@ -232,12 +232,12 @@ class WarehouseTestClient:
         print("\n🔍 [STEP 4] Querying updated items...")
         self.test_list_items("kitchen", "refrigerator")
         
-        # 测试取出货物
-        print("\n📤 [TEST] Testing GetItem functionality")
+        # 测试更新货物
+        print("\n📤 [TEST] Testing UpdateItem functionality")
         print("-" * 30)
-        print("🔍 [STEP 1] Testing item retrieval...")
-        self.test_get_item("fruits", "apple", "apple")
-        self.test_get_item("kitchen", "refrigerator", "refrigerator")
+        print("🔍 [STEP 1] Testing item update...")
+        self.test_update_item("fruits", "apple", 100)
+        self.test_update_item("kitchen", "refrigerator", 15)
     
     def close(self):
         """关闭客户端连接"""

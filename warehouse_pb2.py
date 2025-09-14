@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fwarehouse.proto\x12\twarehouse\"C\n\x0cOrderRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"-\n\rOrderResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0c\n\x04left\x18\x02 \x01(\x05\"E\n\x0ePutItemRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"3\n\x0fPutItemResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"E\n\x0eGetItemRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"3\n\x0fGetItemResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"9\n\x10ListItemsRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\"\"\n\x11ListItemsResponse\x12\r\n\x05items\x18\x01 \x03(\t2\x9b\x02\n\x0cOrderService\x12?\n\nPlaceOrder\x12\x17.warehouse.OrderRequest\x1a\x18.warehouse.OrderResponse\x12@\n\x07PutItem\x12\x19.warehouse.PutItemRequest\x1a\x1a.warehouse.PutItemResponse\x12@\n\x07GetItem\x12\x19.warehouse.GetItemRequest\x1a\x1a.warehouse.GetItemResponse\x12\x46\n\tListItems\x12\x1b.warehouse.ListItemsRequest\x1a\x1c.warehouse.ListItemsResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fwarehouse.proto\x12\twarehouse\"C\n\x0cOrderRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"-\n\rOrderResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0c\n\x04left\x18\x02 \x01(\x05\"E\n\x0ePutItemRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"3\n\x0fPutItemResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"H\n\x11UpdateItemRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\x05\"6\n\x12UpdateItemResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"9\n\x10ListItemsRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\"\"\n\x11ListItemsResponse\x12\r\n\x05items\x18\x01 \x03(\t2\xa4\x02\n\x0cOrderService\x12?\n\nPlaceOrder\x12\x17.warehouse.OrderRequest\x1a\x18.warehouse.OrderResponse\x12@\n\x07PutItem\x12\x19.warehouse.PutItemRequest\x1a\x1a.warehouse.PutItemResponse\x12I\n\nUpdateItem\x12\x1c.warehouse.UpdateItemRequest\x1a\x1d.warehouse.UpdateItemResponse\x12\x46\n\tListItems\x12\x1b.warehouse.ListItemsRequest\x1a\x1c.warehouse.ListItemsResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -39,14 +39,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_PUTITEMREQUEST']._serialized_end=215
   _globals['_PUTITEMRESPONSE']._serialized_start=217
   _globals['_PUTITEMRESPONSE']._serialized_end=268
-  _globals['_GETITEMREQUEST']._serialized_start=270
-  _globals['_GETITEMREQUEST']._serialized_end=339
-  _globals['_GETITEMRESPONSE']._serialized_start=341
-  _globals['_GETITEMRESPONSE']._serialized_end=392
-  _globals['_LISTITEMSREQUEST']._serialized_start=394
-  _globals['_LISTITEMSREQUEST']._serialized_end=451
-  _globals['_LISTITEMSRESPONSE']._serialized_start=453
-  _globals['_LISTITEMSRESPONSE']._serialized_end=487
-  _globals['_ORDERSERVICE']._serialized_start=490
-  _globals['_ORDERSERVICE']._serialized_end=773
+  _globals['_UPDATEITEMREQUEST']._serialized_start=270
+  _globals['_UPDATEITEMREQUEST']._serialized_end=342
+  _globals['_UPDATEITEMRESPONSE']._serialized_start=344
+  _globals['_UPDATEITEMRESPONSE']._serialized_end=398
+  _globals['_LISTITEMSREQUEST']._serialized_start=400
+  _globals['_LISTITEMSREQUEST']._serialized_end=457
+  _globals['_LISTITEMSRESPONSE']._serialized_start=459
+  _globals['_LISTITEMSRESPONSE']._serialized_end=493
+  _globals['_ORDERSERVICE']._serialized_start=496
+  _globals['_ORDERSERVICE']._serialized_end=788
 # @@protoc_insertion_point(module_scope)

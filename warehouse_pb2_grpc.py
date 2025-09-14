@@ -45,10 +45,10 @@ class OrderServiceStub(object):
                 request_serializer=warehouse__pb2.PutItemRequest.SerializeToString,
                 response_deserializer=warehouse__pb2.PutItemResponse.FromString,
                 _registered_method=True)
-        self.GetItem = channel.unary_unary(
-                '/warehouse.OrderService/GetItem',
-                request_serializer=warehouse__pb2.GetItemRequest.SerializeToString,
-                response_deserializer=warehouse__pb2.GetItemResponse.FromString,
+        self.UpdateItem = channel.unary_unary(
+                '/warehouse.OrderService/UpdateItem',
+                request_serializer=warehouse__pb2.UpdateItemRequest.SerializeToString,
+                response_deserializer=warehouse__pb2.UpdateItemResponse.FromString,
                 _registered_method=True)
         self.ListItems = channel.unary_unary(
                 '/warehouse.OrderService/ListItems',
@@ -73,7 +73,7 @@ class OrderServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetItem(self, request, context):
+    def UpdateItem(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -98,10 +98,10 @@ def add_OrderServiceServicer_to_server(servicer, server):
                     request_deserializer=warehouse__pb2.PutItemRequest.FromString,
                     response_serializer=warehouse__pb2.PutItemResponse.SerializeToString,
             ),
-            'GetItem': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetItem,
-                    request_deserializer=warehouse__pb2.GetItemRequest.FromString,
-                    response_serializer=warehouse__pb2.GetItemResponse.SerializeToString,
+            'UpdateItem': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateItem,
+                    request_deserializer=warehouse__pb2.UpdateItemRequest.FromString,
+                    response_serializer=warehouse__pb2.UpdateItemResponse.SerializeToString,
             ),
             'ListItems': grpc.unary_unary_rpc_method_handler(
                     servicer.ListItems,
@@ -175,7 +175,7 @@ class OrderService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetItem(request,
+    def UpdateItem(request,
             target,
             options=(),
             channel_credentials=None,
@@ -188,9 +188,9 @@ class OrderService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/warehouse.OrderService/GetItem',
-            warehouse__pb2.GetItemRequest.SerializeToString,
-            warehouse__pb2.GetItemResponse.FromString,
+            '/warehouse.OrderService/UpdateItem',
+            warehouse__pb2.UpdateItemRequest.SerializeToString,
+            warehouse__pb2.UpdateItemResponse.FromString,
             options,
             channel_credentials,
             insecure,
