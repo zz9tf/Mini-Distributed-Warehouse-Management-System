@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package warehouse;
+
+// 下单请求
+message OrderRequest {
+  string category = 1;      // 一级分类
+  string subcategory = 2;   // 二级分类
+  string item = 3;          // 商品名
+}
+
+// 下单响应
+message OrderResponse {
+  string status = 1;        // ok / out of stock
+  int32 left = 2;           // 剩余库存
+}
+
+// ------------------- 新增接口所需消息 -------------------
+
+// 放入货物
+message PutItemRequest {
+  string category = 1;      
+  string subcategory = 2;
+  string item = 3;          
+}
+
+message PutItemResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 取出货物
+message GetItemRequest {
+  string category = 1;
+  string subcategory = 2;
+  string item = 3;
+}
+
+message GetItemResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 查询当前仓库
+message ListItemsRequest {
+  string category = 1;
+  string subcategory = 2;
+}
+
+message ListItemsResponse {
+  repeated string items = 1;  // 当前子类下所有物品
+}
+
+// ------------------- Service 定义 -------------------
+service OrderService {
+  rpc PlaceOrder(OrderRequest) returns (OrderResponse);
+
+  rpc PutItem(PutItemRequest) returns (PutItemResponse);
+  rpc GetItem(GetItemRequest) returns (GetItemResponse);
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+}

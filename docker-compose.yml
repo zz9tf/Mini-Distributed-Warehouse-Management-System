@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+  # 底层服务 - FreshService
+  fresh-service:
+    build: .
+    command: python services/fresh_service.py
+    ports:
+      - "50053:50053"
+    environment:
+      - PYTHONPATH=/app
+    networks:
+      - warehouse-network
+
+  # 底层服务 - ApplianceService
+  appliance-service:
+    build: .
+    command: python services/appliance_service.py
+    ports:
+      - "50054:50054"
+    environment:
+      - PYTHONPATH=/app
+    networks:
+      - warehouse-network
+
+  # 中层服务 - FoodService
+  food-service:
+    build: .
+    command: python services/food_service.py
+    ports:
+      - "50052:50052"
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - fresh-service
+    networks:
+      - warehouse-network
+
+  # 中层服务 - ElectronicsService
+  electronics-service:
+    build: .
+    command: python services/electronics_service.py
+    ports:
+      - "50051:50051"
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - appliance-service
+    networks:
+      - warehouse-network
+
+  # 顶层服务 - API Gateway
+  api-gateway:
+    build: .
+    command: python api_gateway.py
+    ports:
+      - "50050:50050"
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - food-service
+      - electronics-service
+    networks:
+      - warehouse-network
+
+  # 测试客户端
+  test-client:
+    build: .
+    command: python test_client.py
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - api-gateway
+    networks:
+      - warehouse-network
+
+networks:
+  warehouse-network:
+    driver: bridge
