@@ -201,12 +201,12 @@ class WarehouseTestClient:
         
         # 下单测试
         print("\n🛒 [STEP 2] Testing order placement...")
-        self.test_place_order("fruits", "apple", "apple")
-        self.test_place_order("fruits", "apple", "apple")
+        self.test_place_order("fruits", "apple", "10")
+        self.test_place_order("fruits", "apple", "20")
         
         # 放入新货物
         print("\n📦 [STEP 3] Testing item addition...")
-        self.test_put_item("fruits", "apple", "grape")
+        self.test_put_item("fruits", "apple", "40")
         
         # 查询更新后的货物
         print("\n🔍 [STEP 4] Querying updated items...")

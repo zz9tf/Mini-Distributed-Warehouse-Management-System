@@ -162,6 +162,10 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             self.inventory[category][subcategory] = item
             print(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
             
+            if item == 0:
+                del self.inventory[category][subcategory]
+                print(f"   📝 Deleted subcategory: {subcategory} as it is now empty")
+            
             print(f"   ✅ [SENDING] UpdateItem successful")
             response = warehouse_pb2.UpdateItemResponse(
                 success=True,
