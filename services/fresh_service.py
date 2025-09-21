@@ -73,7 +73,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                     print(f"   ❌ [SENDING] Out of stock")
                     response = warehouse_pb2.OrderResponse(
                         status="out of stock",
-                        left=0
+                        left=item
                     )
                     print(f"   📤 Response: status={response.status}, left={response.left}")
                     return response
@@ -143,7 +143,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
         try:
             category = request.category.lower()
             subcategory = request.subcategory.lower()
-            item = request.item
+            item = int(request.item)
             
             print(f"🥬 [RECEIVED] FreshService - UpdateItem Request:")
             print(f"   📥 Category: {category}")
@@ -158,13 +158,13 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 self.inventory[category][subcategory] = 0
                 print(f"   📝 Created new subcategory: {subcategory}")
             
-            old_count = self.inventory[category][subcategory]
-            self.inventory[category][subcategory] = item
-            print(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
-            
-            if item == 0:
+            if item < 0:
                 del self.inventory[category][subcategory]
                 print(f"   📝 Deleted subcategory: {subcategory} as it is now empty")
+            else:
+                old_count = self.inventory[category][subcategory]
+                self.inventory[category][subcategory] = item
+                print(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
             
             print(f"   ✅ [SENDING] UpdateItem successful")
             response = warehouse_pb2.UpdateItemResponse(

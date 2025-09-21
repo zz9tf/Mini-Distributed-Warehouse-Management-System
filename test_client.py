@@ -222,11 +222,11 @@ class WarehouseTestClient:
         
         # 下单测试
         print("\n🛒 [STEP 2] Testing order placement...")
-        self.test_place_order("kitchen", "refrigerator", "refrigerator")
+        self.test_place_order("kitchen", "refrigerator", "3")
         
         # 放入新货物
         print("\n📦 [STEP 3] Testing item addition...")
-        self.test_put_item("kitchen", "refrigerator", "oven")
+        self.test_put_item("kitchen", "refrigerator", "10")
         
         # 查询更新后的货物
         print("\n🔍 [STEP 4] Querying updated items...")

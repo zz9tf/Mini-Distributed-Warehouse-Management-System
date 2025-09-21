@@ -42,7 +42,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
         try:
             category = request.category.lower()
             subcategory = request.subcategory.lower()
-            item = request.item.lower()
+            item = int(request.item)
             
             print(f"🏠 [RECEIVED] ApplianceService - PlaceOrder Request:")
             print(f"   📥 Category: {category}")
@@ -52,16 +52,15 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             
             # 检查库存
             if (category in self.inventory and 
-                subcategory in self.inventory[category] and 
-                item in self.inventory[category][subcategory]):
+                subcategory in self.inventory[category]):
                 
-                current_stock = self.inventory[category][subcategory][item]
+                current_stock = self.inventory[category][subcategory]
                 print(f"   📊 Current stock: {current_stock}")
                 
-                if current_stock > 0:
+                if current_stock > item:
                     # 减少库存
-                    self.inventory[category][subcategory][item] -= 1
-                    new_stock = self.inventory[category][subcategory][item]
+                    self.inventory[category][subcategory] -= item
+                    new_stock = self.inventory[category][subcategory]
                     
                     print(f"   ✅ [SENDING] Order successful - Stock reduced to: {new_stock}")
                     response = warehouse_pb2.OrderResponse(
@@ -74,7 +73,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                     print(f"   ❌ [SENDING] Out of stock")
                     response = warehouse_pb2.OrderResponse(
                         status="out of stock",
-                        left=0
+                        left=item
                     )
                     print(f"   📤 Response: status={response.status}, left={response.left}")
                     return response
@@ -102,28 +101,24 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
         try:
             category = request.category.lower()
             subcategory = request.subcategory.lower()
-            item = request.item.lower()
+            item = int(request.item)
             
             print(f"🏠 [RECEIVED] ApplianceService - PutItem Request:")
             print(f"   📥 Category: {category}")
             print(f"   📥 Subcategory: {subcategory}")
-            print(f"   📥 Item: {item}")
+            print(f"   📥 Item number: {item}")
             print(f"   📥 Client IP: {context.peer()}")
             
             if category not in self.inventory:
                 self.inventory[category] = {}
                 print(f"   📝 Created new category: {category}")
             if subcategory not in self.inventory[category]:
-                self.inventory[category][subcategory] = {}
+                self.inventory[category][subcategory] = 0
                 print(f"   📝 Created new subcategory: {subcategory}")
             
-            old_count = self.inventory[category][subcategory].get(item, 0)
-            if item in self.inventory[category][subcategory]:
-                self.inventory[category][subcategory][item] += 1
-                print(f"   📈 Incremented existing item: {item} ({old_count} → {self.inventory[category][subcategory][item]})")
-            else:
-                self.inventory[category][subcategory][item] = 1
-                print(f"   🆕 Added new item: {item} (count: 1)")
+            old_count = self.inventory[category][subcategory]
+            self.inventory[category][subcategory] += item
+            print(f"   📈 Incremented existing item: {item} ({old_count} → {self.inventory[category][subcategory]})")
             
             print(f"   ✅ [SENDING] PutItem successful")
             response = warehouse_pb2.PutItemResponse(
@@ -148,7 +143,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
         try:
             category = request.category.lower()
             subcategory = request.subcategory.lower()
-            item = request.item
+            item = int(request.item)
             
             print(f"🏠 [RECEIVED] ApplianceService - UpdateItem Request:")
             print(f"   📥 Category: {category}")
@@ -163,10 +158,14 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                 self.inventory[category][subcategory] = 0
                 print(f"   📝 Created new subcategory: {subcategory}")
             
-            old_count = self.inventory[category][subcategory]
-            self.inventory[category][subcategory] = item
-            print(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
-            
+            if item < 0:
+                del self.inventory[category][subcategory]
+                print(f"   📝 Deleted subcategory: {subcategory} as it is now empty")
+            else:
+                old_count = self.inventory[category][subcategory]
+                self.inventory[category][subcategory] = item
+                print(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
+
             print(f"   ✅ [SENDING] UpdateItem successful")
             response = warehouse_pb2.UpdateItemResponse(
                 success=True,
@@ -199,11 +198,8 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             items = []
             if (category in self.inventory and 
                 subcategory in self.inventory[category]):
-                items = list(self.inventory[category][subcategory].keys())
-                print(f"   📋 Found {len(items)} items in {category}/{subcategory}")
-                for item in items:
-                    count = self.inventory[category][subcategory][item]
-                    print(f"     - {item}: {count} units")
+                items.append(str(self.inventory[category][subcategory]))
+                print(f"   📋 Found {str(self.inventory[category][subcategory])} items in {category}/{subcategory}")
             else:
                 print(f"   📋 No items found in {category}/{subcategory}")
             

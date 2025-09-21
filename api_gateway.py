@@ -40,7 +40,8 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
         """根据请求类别路由到相应服务"""
         category = request.category.lower()
         
-        if category in ['food', 'fruits', 'vegetables', 'fresh']:
+        # TODO：这里路由存在问题，传参数时不存在food类和eletronics类，实际逻辑是存在问题的
+        if category in ['food', 'fruits', 'vegetables', 'fresh']: 
             return self.food_service_stub
         elif category in ['electronics', 'appliance', 'kitchen', 'living']:
             return self.electronics_service_stub
