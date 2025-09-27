@@ -7,8 +7,6 @@ LoggerService - 日志服务容器
 
 import grpc
 import time
-import signal
-import sys
 import json
 from concurrent import futures
 from datetime import datetime
@@ -80,9 +78,6 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
             
             with self.lock:
                 self.logs.append(log_entry)
-                # 保持最近1000条记录
-                if len(self.logs) > 1000:
-                    self.logs = self.logs[-1000:]
             
             # 异步保存，避免阻塞
             threading.Thread(target=self._save_logs, daemon=True).start()
@@ -233,6 +228,32 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
                 success_rate=0.0,
                 service_stats=[],
                 operation_stats=[]
+            )
+    
+    def ClearLogs(self, request, context):
+        """清空所有日志"""
+        try:
+            with self.lock:
+                cleared_count = len(self.logs)
+                self.logs.clear()
+            
+            # 清空日志文件
+            with open(self.log_file, 'w', encoding='utf-8') as f:
+                json.dump([], f, ensure_ascii=False, indent=2)
+            
+            print(f"🗑️ ClearLogs: Cleared {cleared_count} logs")
+            return warehouse_pb2.ClearLogsResponse(
+                success=True,
+                message=f"Successfully cleared {cleared_count} logs",
+                cleared_count=cleared_count
+            )
+            
+        except Exception as e:
+            print(f"❌ [ERROR] LoggerService ClearLogs error: {e}")
+            return warehouse_pb2.ClearLogsResponse(
+                success=False,
+                message=f"Error: {str(e)}",
+                cleared_count=0
             )
 
 

@@ -7,8 +7,6 @@ ApplianceService - 底层服务
 
 import grpc
 import time
-import signal
-import sys
 from concurrent import futures
 
 import warehouse_pb2
@@ -88,6 +86,18 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                         left=item
                     )
                     print(f"   📤 Response: status={response.status}, left={response.left}")
+                    
+                    # 记录操作日志
+                    logger_client.log_operation(
+                        service_name="ApplianceService",
+                        operation="PlaceOrder",
+                        request_data={"category": category, "subcategory": subcategory, "item": item},
+                        response_data={"status": response.status, "left": response.left},
+                        client_ip=context.peer(),
+                        success=False,
+                        error_message="Out of stock"
+                    )
+                    
                     return response
             else:
                 print(f"   ❌ [SENDING] Item not found in inventory")
@@ -138,6 +148,17 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Added {item} to {category}/{subcategory}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ApplianceService",
+                operation="PutItem",
+                request_data={"category": category, "subcategory": subcategory, "item": item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except Exception as e:
@@ -148,6 +169,18 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ApplianceService",
+                operation="PutItem",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
     
     def UpdateItem(self, request, context):
@@ -184,6 +217,17 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Updated {category}/{subcategory} to {item}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ApplianceService",
+                operation="UpdateItem",
+                request_data={"category": category, "subcategory": subcategory, "item": item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except Exception as e:
@@ -194,6 +238,18 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ApplianceService",
+                operation="UpdateItem",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
     
     def ListItems(self, request, context):
@@ -218,6 +274,17 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   ✅ [SENDING] ListItems successful")
             response = warehouse_pb2.ListItemsResponse(items=items)
             print(f"   📤 Response: {len(response.items)} items")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ApplianceService",
+                operation="ListItems",
+                request_data={"category": category, "subcategory": subcategory},
+                response_data={"items_count": len(response.items), "items": list(response.items)},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except Exception as e:
@@ -225,6 +292,18 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📤 [SENDING] Error response")
             response = warehouse_pb2.ListItemsResponse(items=[])
             print(f"   📤 Response: {len(response.items)} items")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ApplianceService",
+                operation="ListItems",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', '')},
+                response_data={"items_count": len(response.items), "items": list(response.items)},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
 
 

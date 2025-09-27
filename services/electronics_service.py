@@ -13,6 +13,7 @@ from concurrent import futures
 
 import warehouse_pb2
 import warehouse_pb2_grpc
+from logger_client import logger_client
 
 
 class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
@@ -44,6 +45,17 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📨 Status: {response.status}")
             print(f"   📨 Left in stock: {response.left}")
             print(f"   ✅ [SENDING] Forwarding response to client")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ElectronicsService",
+                operation="PlaceOrder",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"status": response.status, "left": response.left},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except grpc.RpcError as e:
@@ -54,6 +66,18 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
                 left=0
             )
             print(f"   📤 Response: status={response.status}, left={response.left}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ElectronicsService",
+                operation="PlaceOrder",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"status": response.status, "left": response.left},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"gRPC error: {str(e)}"
+            )
+            
             return response
         except Exception as e:
             print(f"❌ [ERROR] ElectronicsService PlaceOrder error: {e}")
@@ -63,6 +87,18 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
                 left=0
             )
             print(f"   📤 Response: status={response.status}, left={response.left}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ElectronicsService",
+                operation="PlaceOrder",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"status": response.status, "left": response.left},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
     
     def PutItem(self, request, context):
@@ -82,6 +118,17 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             print(f"   📨 Success: {response.success}")
             print(f"   📨 Message: {response.message}")
             print(f"   ✅ [SENDING] Forwarding response to client")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ElectronicsService",
+                operation="PutItem",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except grpc.RpcError as e:
@@ -92,6 +139,18 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
                 message="Service unavailable"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ElectronicsService",
+                operation="PutItem",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"gRPC error: {str(e)}"
+            )
+            
             return response
         except Exception as e:
             print(f"❌ [ERROR] ElectronicsService PutItem error: {e}")
@@ -101,6 +160,18 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             print(f"   📤 Response: success={response.success}, message={response.message}")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="ElectronicsService",
+                operation="PutItem",
+                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=str(e)
+            )
+            
             return response
     
     def UpdateItem(self, request, context):

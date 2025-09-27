@@ -8,7 +8,7 @@ package warehouse;
 message OrderRequest {
   string category = 1;      // 一级分类
   string subcategory = 2;   // 二级分类
-  string item = 3;          // 商品名
+  int32 item = 3;           // 商品数量
 }
 
 // 下单响应
@@ -21,7 +21,7 @@ message OrderResponse {
 message PutItemRequest {
   string category = 1;      
   string subcategory = 2;
-  string item = 3;          
+  int32 item = 3;           // 商品数量
 }
 
 // 放入货物响应
@@ -141,9 +141,22 @@ service OrderService {
   rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
 }
 
+// 清空日志请求
+message ClearLogsRequest {
+  // 空消息，不需要参数
+}
+
+// 清空日志响应
+message ClearLogsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 cleared_count = 3;
+}
+
 // 日志服务
 service LoggerService {
   rpc LogOperation(LogRequest) returns (LogResponse);
   rpc QueryLogs(QueryLogsRequest) returns (QueryLogsResponse);
   rpc GetStats(StatsRequest) returns (StatsResponse);
+  rpc ClearLogs(ClearLogsRequest) returns (ClearLogsResponse);
 }

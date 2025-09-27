@@ -13,6 +13,7 @@ from concurrent import futures
 
 import warehouse_pb2
 import warehouse_pb2_grpc
+from logger_client import logger_client
 
 
 class FoodService(warehouse_pb2_grpc.OrderServiceServicer):

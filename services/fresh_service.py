@@ -7,8 +7,6 @@ FreshService - 底层服务
 
 import grpc
 import time
-import signal
-import sys
 from concurrent import futures
 
 import warehouse_pb2
@@ -303,11 +301,11 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 service_name="FreshService",
                 operation="ListItems",
                 request_data={"category": category, "subcategory": subcategory},
-                response_data={"items_count": len(response.items), "items": response.items},
+                response_data={"items_count": len(response.items), "items": list(response.items)},
                 client_ip=context.peer(),
                 success=True
             )
-            
+
             return response
             
         except Exception as e:
@@ -321,7 +319,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 service_name="FreshService",
                 operation="ListItems",
                 request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', '')},
-                response_data={"items_count": len(response.items), "items": response.items},
+                response_data={"items_count": len(response.items), "items": list(response.items)},
                 client_ip=context.peer(),
                 success=False,
                 error_message=str(e)
