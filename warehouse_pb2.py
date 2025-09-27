@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fwarehouse.proto\x12\twarehouse\"C\n\x0cOrderRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"-\n\rOrderResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0c\n\x04left\x18\x02 \x01(\x05\"E\n\x0ePutItemRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"3\n\x0fPutItemResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"H\n\x11UpdateItemRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\x05\"6\n\x12UpdateItemResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"9\n\x10ListItemsRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\"\"\n\x11ListItemsResponse\x12\r\n\x05items\x18\x01 \x03(\t2\xa4\x02\n\x0cOrderService\x12?\n\nPlaceOrder\x12\x17.warehouse.OrderRequest\x1a\x18.warehouse.OrderResponse\x12@\n\x07PutItem\x12\x19.warehouse.PutItemRequest\x1a\x1a.warehouse.PutItemResponse\x12I\n\nUpdateItem\x12\x1c.warehouse.UpdateItemRequest\x1a\x1d.warehouse.UpdateItemResponse\x12\x46\n\tListItems\x12\x1b.warehouse.ListItemsRequest\x1a\x1c.warehouse.ListItemsResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fwarehouse.proto\x12\twarehouse\"C\n\x0cOrderRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"-\n\rOrderResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0c\n\x04left\x18\x02 \x01(\x05\"E\n\x0ePutItemRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\t\"3\n\x0fPutItemResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"H\n\x11UpdateItemRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\x12\x0c\n\x04item\x18\x03 \x01(\x05\"6\n\x12UpdateItemResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"9\n\x10ListItemsRequest\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x13\n\x0bsubcategory\x18\x02 \x01(\t\"\"\n\x11ListItemsResponse\x12\r\n\x05items\x18\x01 \x03(\t\"\x9d\x01\n\nLogRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\toperation\x18\x02 \x01(\t\x12\x11\n\tclient_ip\x18\x03 \x01(\t\x12\x0f\n\x07success\x18\x04 \x01(\x08\x12\x14\n\x0crequest_data\x18\x05 \x01(\t\x12\x15\n\rresponse_data\x18\x06 \x01(\t\x12\x15\n\rerror_message\x18\x07 \x01(\t\"/\n\x0bLogResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"J\n\x10QueryLogsRequest\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\x11\n\toperation\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\"K\n\x11QueryLogsResponse\x12!\n\x04logs\x18\x01 \x03(\x0b\x32\x13.warehouse.LogEntry\x12\x13\n\x0btotal_count\x18\x02 \x01(\x05\"\xae\x01\n\x08LogEntry\x12\x11\n\ttimestamp\x18\x01 \x01(\t\x12\x14\n\x0cservice_name\x18\x02 \x01(\t\x12\x11\n\toperation\x18\x03 \x01(\t\x12\x11\n\tclient_ip\x18\x04 \x01(\t\x12\x0f\n\x07success\x18\x05 \x01(\x08\x12\x14\n\x0crequest_data\x18\x06 \x01(\t\x12\x15\n\rresponse_data\x18\x07 \x01(\t\x12\x15\n\rerror_message\x18\x08 \x01(\t\"\x0e\n\x0cStatsRequest\"\xdd\x01\n\rStatsResponse\x12\x18\n\x10total_operations\x18\x01 \x01(\x05\x12\x1d\n\x15successful_operations\x18\x02 \x01(\x05\x12\x19\n\x11\x66\x61iled_operations\x18\x03 \x01(\x05\x12\x14\n\x0csuccess_rate\x18\x04 \x01(\x01\x12.\n\rservice_stats\x18\x05 \x03(\x0b\x32\x17.warehouse.ServiceStats\x12\x32\n\x0foperation_stats\x18\x06 \x03(\x0b\x32\x19.warehouse.OperationStats\"j\n\x0cServiceStats\x12\x14\n\x0cservice_name\x18\x01 \x01(\t\x12\r\n\x05total\x18\x02 \x01(\x05\x12\x0f\n\x07success\x18\x03 \x01(\x05\x12\x0e\n\x06\x66\x61iled\x18\x04 \x01(\x05\x12\x14\n\x0csuccess_rate\x18\x05 \x01(\x01\"i\n\x0eOperationStats\x12\x11\n\toperation\x18\x01 \x01(\t\x12\r\n\x05total\x18\x02 \x01(\x05\x12\x0f\n\x07success\x18\x03 \x01(\x05\x12\x0e\n\x06\x66\x61iled\x18\x04 \x01(\x05\x12\x14\n\x0csuccess_rate\x18\x05 \x01(\x01\x32\xa4\x02\n\x0cOrderService\x12?\n\nPlaceOrder\x12\x17.warehouse.OrderRequest\x1a\x18.warehouse.OrderResponse\x12@\n\x07PutItem\x12\x19.warehouse.PutItemRequest\x1a\x1a.warehouse.PutItemResponse\x12I\n\nUpdateItem\x12\x1c.warehouse.UpdateItemRequest\x1a\x1d.warehouse.UpdateItemResponse\x12\x46\n\tListItems\x12\x1b.warehouse.ListItemsRequest\x1a\x1c.warehouse.ListItemsResponse2\xd5\x01\n\rLoggerService\x12=\n\x0cLogOperation\x12\x15.warehouse.LogRequest\x1a\x16.warehouse.LogResponse\x12\x46\n\tQueryLogs\x12\x1b.warehouse.QueryLogsRequest\x1a\x1c.warehouse.QueryLogsResponse\x12=\n\x08GetStats\x12\x17.warehouse.StatsRequest\x1a\x18.warehouse.StatsResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -47,6 +47,26 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_LISTITEMSREQUEST']._serialized_end=457
   _globals['_LISTITEMSRESPONSE']._serialized_start=459
   _globals['_LISTITEMSRESPONSE']._serialized_end=493
-  _globals['_ORDERSERVICE']._serialized_start=496
-  _globals['_ORDERSERVICE']._serialized_end=788
+  _globals['_LOGREQUEST']._serialized_start=496
+  _globals['_LOGREQUEST']._serialized_end=653
+  _globals['_LOGRESPONSE']._serialized_start=655
+  _globals['_LOGRESPONSE']._serialized_end=702
+  _globals['_QUERYLOGSREQUEST']._serialized_start=704
+  _globals['_QUERYLOGSREQUEST']._serialized_end=778
+  _globals['_QUERYLOGSRESPONSE']._serialized_start=780
+  _globals['_QUERYLOGSRESPONSE']._serialized_end=855
+  _globals['_LOGENTRY']._serialized_start=858
+  _globals['_LOGENTRY']._serialized_end=1032
+  _globals['_STATSREQUEST']._serialized_start=1034
+  _globals['_STATSREQUEST']._serialized_end=1048
+  _globals['_STATSRESPONSE']._serialized_start=1051
+  _globals['_STATSRESPONSE']._serialized_end=1272
+  _globals['_SERVICESTATS']._serialized_start=1274
+  _globals['_SERVICESTATS']._serialized_end=1380
+  _globals['_OPERATIONSTATS']._serialized_start=1382
+  _globals['_OPERATIONSTATS']._serialized_end=1487
+  _globals['_ORDERSERVICE']._serialized_start=1490
+  _globals['_ORDERSERVICE']._serialized_end=1782
+  _globals['_LOGGERSERVICE']._serialized_start=1785
+  _globals['_LOGGERSERVICE']._serialized_end=1998
 # @@protoc_insertion_point(module_scope)

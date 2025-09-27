@@ -13,6 +13,7 @@ from concurrent import futures
 
 import warehouse_pb2
 import warehouse_pb2_grpc
+from logger_client import logger_client
 
 
 class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
@@ -68,6 +69,17 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                         left=new_stock
                     )
                     print(f"   📤 Response: status={response.status}, left={response.left}")
+                    
+                    # 记录操作日志
+                    logger_client.log_operation(
+                        service_name="ApplianceService",
+                        operation="PlaceOrder",
+                        request_data={"category": category, "subcategory": subcategory, "item": item},
+                        response_data={"status": response.status, "left": response.left},
+                        client_ip=context.peer(),
+                        success=True
+                    )
+                    
                     return response
                 else:
                     print(f"   ❌ [SENDING] Out of stock")

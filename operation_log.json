@@ -1,0 +1,90 @@
+[
+  {
+    "timestamp": "2025-09-14T12:32:41.737825",
+    "service": "TestService",
+    "operation": "PlaceOrder",
+    "client_ip": "127.0.0.1",
+    "success": true,
+    "request": {
+      "category": "test",
+      "subcategory": "test",
+      "item": 1
+    },
+    "response": {
+      "status": "ok",
+      "left": 5
+    },
+    "error": null
+  },
+  {
+    "timestamp": "2025-09-14T12:32:41.737911",
+    "service": "TestService",
+    "operation": "PutItem",
+    "client_ip": "127.0.0.1",
+    "success": true,
+    "request": {
+      "category": "test",
+      "subcategory": "test",
+      "item": 2
+    },
+    "response": {
+      "success": true,
+      "message": "Item added"
+    },
+    "error": null
+  },
+  {
+    "timestamp": "2025-09-14T12:32:41.738123",
+    "service": "TestService",
+    "operation": "UpdateItem",
+    "client_ip": "127.0.0.1",
+    "success": true,
+    "request": {
+      "category": "test",
+      "subcategory": "test",
+      "item": 10
+    },
+    "response": {
+      "success": true,
+      "message": "Item updated"
+    },
+    "error": null
+  },
+  {
+    "timestamp": "2025-09-14T12:32:41.738290",
+    "service": "TestService",
+    "operation": "ListItems",
+    "client_ip": "127.0.0.1",
+    "success": true,
+    "request": {
+      "category": "test",
+      "subcategory": "test"
+    },
+    "response": {
+      "items_count": 3,
+      "items": [
+        "item1",
+        "item2",
+        "item3"
+      ]
+    },
+    "error": null
+  },
+  {
+    "timestamp": "2025-09-14T12:32:41.738430",
+    "service": "TestService",
+    "operation": "PlaceOrder",
+    "client_ip": "127.0.0.1",
+    "success": false,
+    "request": {
+      "category": "test",
+      "subcategory": "test",
+      "item": 100
+    },
+    "response": {
+      "status": "error",
+      "left": 0
+    },
+    "error": "Insufficient stock"
+  }
+]

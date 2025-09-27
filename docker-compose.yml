@@ -49,6 +49,17 @@ services:
     networks:
       - warehouse-network
 
+  # 日志服务 - LoggerService
+  logger-service:
+    build: .
+    command: python logger_service.py
+    ports:
+      - "50055:50055"
+    environment:
+      - PYTHONPATH=/app
+    networks:
+      - warehouse-network
+
   # 顶层服务 - API Gateway
   api-gateway:
     build: .
@@ -60,6 +71,7 @@ services:
     depends_on:
       - food-service
       - electronics-service
+      - logger-service
     networks:
       - warehouse-network
 
