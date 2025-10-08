@@ -14,6 +14,7 @@ from concurrent import futures
 import warehouse_pb2
 import warehouse_pb2_grpc
 from logger_client import logger_client
+from warehouse_logger import get_logger
 
 
 class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
@@ -24,154 +25,129 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
     
     def __init__(self, fresh_service_host='fresh-service', fresh_service_port=50053):
         """Initialize FoodService"""
+        self.logger = get_logger('FoodService')
         self.fresh_service_channel = grpc.insecure_channel(f'{fresh_service_host}:{fresh_service_port}')
         self.fresh_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.fresh_service_channel)
-        print("🍎 FoodService initialized")
+        self.logger.print_success("FoodService initialized")
     
     def PlaceOrder(self, request, context):
         """处理下单请求 - 转发给FreshService"""
         try:
-            print(f"🍎 [RECEIVED] FoodService - PlaceOrder Request:")
-            print(f"   📥 Category: {request.category}")
-            print(f"   📥 Subcategory: {request.subcategory}")
-            print(f"   📥 Item: {request.item}")
-            print(f"   📥 Client IP: {context.peer()}")
-            print(f"   🔄 [FORWARDING] Sending to FreshService...")
+            self.logger.print_debug("PlaceOrder request received")
+            self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}, Item: {request.item}")
+            self.logger.print_debug(f"Client IP: {context.peer()}")
+            self.logger.print_debug("Forwarding to FreshService")
             
             # 转发给FreshService
             response = self.fresh_service_stub.PlaceOrder(request)
             
-            print(f"   📨 [RECEIVED] Response from FreshService:")
-            print(f"   📨 Status: {response.status}")
-            print(f"   📨 Left in stock: {response.left}")
-            print(f"   ✅ [SENDING] Forwarding response to client")
+            self.logger.print_debug(f"Response from FreshService: status={response.status}, left={response.left}")
+            self.logger.print_debug("PlaceOrder completed successfully")
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] FoodService PlaceOrder gRPC error: {e}")
-            print(f"   📤 [SENDING] Service unavailable response")
+            self.logger.print_debug(f"PlaceOrder gRPC error: {e}")
             response = warehouse_pb2.OrderResponse(
                 status="service unavailable",
                 left=0
             )
-            print(f"   📤 Response: status={response.status}, left={response.left}")
             return response
         except Exception as e:
-            print(f"❌ [ERROR] FoodService PlaceOrder error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f"PlaceOrder error: {e}")
             response = warehouse_pb2.OrderResponse(
                 status="error",
                 left=0
             )
-            print(f"   📤 Response: status={response.status}, left={response.left}")
             return response
     
     def PutItem(self, request, context):
         """放入货物 - 转发给FreshService"""
         try:
-            print(f"🍎 [RECEIVED] FoodService - PutItem Request:")
-            print(f"   📥 Category: {request.category}")
-            print(f"   📥 Subcategory: {request.subcategory}")
-            print(f"   📥 Item: {request.item}")
-            print(f"   📥 Client IP: {context.peer()}")
-            print(f"   🔄 [FORWARDING] Sending to FreshService...")
+            self.logger.print_debug("PutItem request received")
+            self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}, Item: {request.item}")
+            self.logger.print_debug(f"Client IP: {context.peer()}")
+            self.logger.print_debug("Forwarding to FreshService")
             
             # 转发给FreshService
             response = self.fresh_service_stub.PutItem(request)
             
-            print(f"   📨 [RECEIVED] Response from FreshService:")
-            print(f"   📨 Success: {response.success}")
-            print(f"   📨 Message: {response.message}")
-            print(f"   ✅ [SENDING] Forwarding response to client")
+            self.logger.print_debug(f"Response from FreshService: success={response.success}, message={response.message}")
+            self.logger.print_debug("PutItem completed successfully")
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] FoodService PutItem gRPC error: {e}")
-            print(f"   📤 [SENDING] Service unavailable response")
+            self.logger.print_debug(f"PutItem gRPC error: {e}")
             response = warehouse_pb2.PutItemResponse(
                 success=False,
                 message="Service unavailable"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
         except Exception as e:
-            print(f"❌ [ERROR] FoodService PutItem error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f"PutItem error: {e}")
             response = warehouse_pb2.PutItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
     
     def UpdateItem(self, request, context):
         """更新货物 - 转发给FreshService"""
         try:
-            print(f"🍎 [RECEIVED] FoodService - UpdateItem Request:")
-            print(f"   📥 Category: {request.category}")
-            print(f"   📥 Subcategory: {request.subcategory}")
-            print(f"   📥 Item: {request.item}")
-            print(f"   📥 Client IP: {context.peer()}")
-            print(f"   🔄 [FORWARDING] Sending to FreshService...")
+            self.logger.print_debug("UpdateItem request received")
+            self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}, Item: {request.item}")
+            self.logger.print_debug(f"Client IP: {context.peer()}")
+            self.logger.print_debug("Forwarding to FreshService")
             
             # 转发给FreshService
             response = self.fresh_service_stub.UpdateItem(request)
             
-            print(f"   📨 [RECEIVED] Response from FreshService:")
-            print(f"   📨 Success: {response.success}")
-            print(f"   📨 Message: {response.message}")
-            print(f"   ✅ [SENDING] Forwarding response to client")
+            self.logger.print_debug(f"Response from FreshService: success={response.success}, message={response.message}")
+            self.logger.print_debug("UpdateItem completed successfully")
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] FoodService UpdateItem gRPC error: {e}")
-            print(f"   📤 [SENDING] Service unavailable response")
+            self.logger.print_debug(f"UpdateItem gRPC error: {e}")
             response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message="Service unavailable"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
         except Exception as e:
-            print(f"❌ [ERROR] FoodService UpdateItem error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f"UpdateItem error: {e}")
             response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
             return response
     
     def ListItems(self, request, context):
         """查询当前仓库 - 转发给FreshService"""
         try:
-            print(f"🍎 [RECEIVED] FoodService - ListItems Request:")
-            print(f"   📥 Category: {request.category}")
-            print(f"   📥 Subcategory: {request.subcategory}")
-            print(f"   📥 Client IP: {context.peer()}")
-            print(f"   🔄 [FORWARDING] Sending to FreshService...")
+            self.logger.print_debug("ListItems request received")
+            self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}")
+            self.logger.print_debug(f"Client IP: {context.peer()}")
+            self.logger.print_debug("Forwarding to FreshService")
             
             # 转发给FreshService
             response = self.fresh_service_stub.ListItems(request)
             
-            print(f"   📨 [RECEIVED] Response from FreshService:")
-            print(f"   📨 Items count: {len(response.items)}")
+            self.logger.print_debug(f"Response from FreshService: {len(response.items)} items")
             for i, item in enumerate(response.items):
-                print(f"   📨 Item {i+1}: {item}")
-            print(f"   ✅ [SENDING] Forwarding response to client")
+                self.logger.print_debug(f"Item {i+1}: {item}")
+            self.logger.print_debug("ListItems completed successfully")
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] FoodService ListItems gRPC error: {e}")
-            print(f"   📤 [SENDING] Empty response due to service unavailable")
+            self.logger.print_debug(f"FoodService ListItems gRPC error: {e}")
+            self.logger.print_debug("Sending empty response due to service unavailable")
             response = warehouse_pb2.ListItemsResponse(items=[])
-            print(f"   📤 Response: {len(response.items)} items")
+            self.logger.print_debug(f"Response: {len(response.items)} items")
             return response
         except Exception as e:
-            print(f"❌ [ERROR] FoodService ListItems error: {e}")
-            print(f"   📤 [SENDING] Empty response due to error")
+            self.logger.print_debug(f"FoodService ListItems error: {e}")
+            self.logger.print_debug("Sending empty response due to error")
             response = warehouse_pb2.ListItemsResponse(items=[])
-            print(f"   📤 Response: {len(response.items)} items")
+            self.logger.print_debug(f"Response: {len(response.items)} items")
             return response
     
     def close(self):
@@ -188,13 +164,14 @@ def run_food_service(port=50052):
     server.add_insecure_port(f'[::]:{port}')
     server.start()
     
-    print(f"🍎 FoodService started on port {port}")
+    logger = get_logger('FoodServiceMain')
+    logger.print_success(f"FoodService started on port {port}")
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n🛑 Stopping FoodService...")
+        logger.print_info("Stopping FoodService...")
         food_service.close()
         server.stop(0)
 

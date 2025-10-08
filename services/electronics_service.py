@@ -14,6 +14,7 @@ from concurrent import futures
 import warehouse_pb2
 import warehouse_pb2_grpc
 from logger_client import logger_client
+from warehouse_logger import get_logger
 
 
 class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
@@ -24,27 +25,24 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
     
     def __init__(self, appliance_service_host='appliance-service', appliance_service_port=50054):
         """Initialize ElectronicsService"""
+        self.logger = get_logger('ElectronicsService')
         self.appliance_service_channel = grpc.insecure_channel(f'{appliance_service_host}:{appliance_service_port}')
         self.appliance_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.appliance_service_channel)
-        print("📱 ElectronicsService initialized")
+        self.logger.print_success("ElectronicsService initialized")
     
     def PlaceOrder(self, request, context):
         """处理下单请求 - 转发给ApplianceService"""
         try:
-            print(f"📱 [RECEIVED] ElectronicsService - PlaceOrder Request:")
-            print(f"   📥 Category: {request.category}")
-            print(f"   📥 Subcategory: {request.subcategory}")
-            print(f"   📥 Item: {request.item}")
-            print(f"   📥 Client IP: {context.peer()}")
-            print(f"   🔄 [FORWARDING] Sending to ApplianceService...")
+            self.logger.print_debug("PlaceOrder request received")
+            self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}, Item: {request.item}")
+            self.logger.print_debug(f"Client IP: {context.peer()}")
+            self.logger.print_debug("Forwarding to ApplianceService")
             
             # 转发给ApplianceService
             response = self.appliance_service_stub.PlaceOrder(request)
             
-            print(f"   📨 [RECEIVED] Response from ApplianceService:")
-            print(f"   📨 Status: {response.status}")
-            print(f"   📨 Left in stock: {response.left}")
-            print(f"   ✅ [SENDING] Forwarding response to client")
+            self.logger.print_debug(f"Response from ApplianceService: status={response.status}, left={response.left}")
+            self.logger.print_debug("PlaceOrder completed successfully")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -59,13 +57,13 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] ElectronicsService PlaceOrder gRPC error: {e}")
-            print(f"   📤 [SENDING] Service unavailable response")
+            self.logger.print_debug(f"ElectronicsService PlaceOrder gRPC error: {e}")
+            self.logger.print_debug(f"Sending Service unavailable response")
             response = warehouse_pb2.OrderResponse(
                 status="service unavailable",
                 left=0
             )
-            print(f"   📤 Response: status={response.status}, left={response.left}")
+            self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -80,13 +78,13 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             
             return response
         except Exception as e:
-            print(f"❌ [ERROR] ElectronicsService PlaceOrder error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f" ElectronicsService PlaceOrder error: {e}")
+            self.logger.print_debug(f"Sending Error response")
             response = warehouse_pb2.OrderResponse(
                 status="error",
                 left=0
             )
-            print(f"   📤 Response: status={response.status}, left={response.left}")
+            self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -104,20 +102,20 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
     def PutItem(self, request, context):
         """放入货物 - 转发给ApplianceService"""
         try:
-            print(f"📱 [RECEIVED] ElectronicsService - PutItem Request:")
-            print(f"   📥 Category: {request.category}")
-            print(f"   📥 Subcategory: {request.subcategory}")
-            print(f"   📥 Item: {request.item}")
-            print(f"   📥 Client IP: {context.peer()}")
-            print(f"   🔄 [FORWARDING] Sending to ApplianceService...")
+            self.logger.print_debug(f"📱 [RECEIVED] ElectronicsService - PutItem Request:")
+            self.logger.print_debug(f"   📥 Category: {request.category}")
+            self.logger.print_debug(f"   📥 Subcategory: {request.subcategory}")
+            self.logger.print_debug(f"   📥 Item: {request.item}")
+            self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
+            self.logger.print_debug(f"   🔄 [FORWARDING] Sending to ApplianceService...")
             
             # 转发给ApplianceService
             response = self.appliance_service_stub.PutItem(request)
             
-            print(f"   📨 [RECEIVED] Response from ApplianceService:")
-            print(f"   📨 Success: {response.success}")
-            print(f"   📨 Message: {response.message}")
-            print(f"   ✅ [SENDING] Forwarding response to client")
+            self.logger.print_debug(f"   📨 [RECEIVED] Response from ApplianceService:")
+            self.logger.print_debug(f"   📨 Success: {response.success}")
+            self.logger.print_debug(f"   📨 Message: {response.message}")
+            self.logger.print_debug(f"   ✅ [SENDING] Forwarding response to client")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -132,13 +130,13 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] ElectronicsService PutItem gRPC error: {e}")
-            print(f"   📤 [SENDING] Service unavailable response")
+            self.logger.print_debug(f"ElectronicsService PutItem gRPC error: {e}")
+            self.logger.print_debug(f"Sending Service unavailable response")
             response = warehouse_pb2.PutItemResponse(
                 success=False,
                 message="Service unavailable"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
+            self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -153,13 +151,13 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             
             return response
         except Exception as e:
-            print(f"❌ [ERROR] ElectronicsService PutItem error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f" ElectronicsService PutItem error: {e}")
+            self.logger.print_debug(f"Sending Error response")
             response = warehouse_pb2.PutItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
+            self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -177,71 +175,71 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
     def UpdateItem(self, request, context):
         """更新货物 - 转发给ApplianceService"""
         try:
-            print(f"📱 [RECEIVED] ElectronicsService - UpdateItem Request:")
-            print(f"   📥 Category: {request.category}")
-            print(f"   📥 Subcategory: {request.subcategory}")
-            print(f"   📥 Item: {request.item}")
-            print(f"   📥 Client IP: {context.peer()}")
-            print(f"   🔄 [FORWARDING] Sending to ApplianceService...")
+            self.logger.print_debug(f"📱 [RECEIVED] ElectronicsService - UpdateItem Request:")
+            self.logger.print_debug(f"   📥 Category: {request.category}")
+            self.logger.print_debug(f"   📥 Subcategory: {request.subcategory}")
+            self.logger.print_debug(f"   📥 Item: {request.item}")
+            self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
+            self.logger.print_debug(f"   🔄 [FORWARDING] Sending to ApplianceService...")
             
             # 转发给ApplianceService
             response = self.appliance_service_stub.UpdateItem(request)
             
-            print(f"   📨 [RECEIVED] Response from ApplianceService:")
-            print(f"   📨 Success: {response.success}")
-            print(f"   📨 Message: {response.message}")
-            print(f"   ✅ [SENDING] Forwarding response to client")
+            self.logger.print_debug(f"   📨 [RECEIVED] Response from ApplianceService:")
+            self.logger.print_debug(f"   📨 Success: {response.success}")
+            self.logger.print_debug(f"   📨 Message: {response.message}")
+            self.logger.print_debug(f"   ✅ [SENDING] Forwarding response to client")
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] ElectronicsService UpdateItem gRPC error: {e}")
-            print(f"   📤 [SENDING] Service unavailable response")
+            self.logger.print_debug(f"ElectronicsService UpdateItem gRPC error: {e}")
+            self.logger.print_debug(f"Sending Service unavailable response")
             response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message="Service unavailable"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
+            self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             return response
         except Exception as e:
-            print(f"❌ [ERROR] ElectronicsService UpdateItem error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f" ElectronicsService UpdateItem error: {e}")
+            self.logger.print_debug(f"Sending Error response")
             response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
+            self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             return response
     
     def ListItems(self, request, context):
         """查询当前仓库 - 转发给ApplianceService"""
         try:
-            print(f"📱 [RECEIVED] ElectronicsService - ListItems Request:")
-            print(f"   📥 Category: {request.category}")
-            print(f"   📥 Subcategory: {request.subcategory}")
-            print(f"   📥 Client IP: {context.peer()}")
-            print(f"   🔄 [FORWARDING] Sending to ApplianceService...")
+            self.logger.print_debug(f"📱 [RECEIVED] ElectronicsService - ListItems Request:")
+            self.logger.print_debug(f"   📥 Category: {request.category}")
+            self.logger.print_debug(f"   📥 Subcategory: {request.subcategory}")
+            self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
+            self.logger.print_debug(f"   🔄 [FORWARDING] Sending to ApplianceService...")
             
             # 转发给ApplianceService
             response = self.appliance_service_stub.ListItems(request)
             
-            print(f"   📨 [RECEIVED] Response from ApplianceService:")
-            print(f"   📨 Items count: {len(response.items)}")
+            self.logger.print_debug(f"   📨 [RECEIVED] Response from ApplianceService:")
+            self.logger.print_debug(f"   📨 Items count: {len(response.items)}")
             for i, item in enumerate(response.items):
-                print(f"   📨 Item {i+1}: {item}")
-            print(f"   ✅ [SENDING] Forwarding response to client")
+                self.logger.print_debug(f"   📨 Item {i+1}: {item}")
+            self.logger.print_debug(f"   ✅ [SENDING] Forwarding response to client")
             return response
             
         except grpc.RpcError as e:
-            print(f"❌ [ERROR] ElectronicsService ListItems gRPC error: {e}")
-            print(f"   📤 [SENDING] Empty response due to service unavailable")
+            self.logger.print_debug(f"ElectronicsService ListItems gRPC error: {e}")
+            self.logger.print_debug(f"Sending Empty response due to service unavailable")
             response = warehouse_pb2.ListItemsResponse(items=[])
-            print(f"   📤 Response: {len(response.items)} items")
+            self.logger.print_debug(f"Response: {len(response.items)} items")
             return response
         except Exception as e:
-            print(f"❌ [ERROR] ElectronicsService ListItems error: {e}")
-            print(f"   📤 [SENDING] Empty response due to error")
+            self.logger.print_debug(f" ElectronicsService ListItems error: {e}")
+            self.logger.print_debug(f"Sending Empty response due to error")
             response = warehouse_pb2.ListItemsResponse(items=[])
-            print(f"   📤 Response: {len(response.items)} items")
+            self.logger.print_debug(f"Response: {len(response.items)} items")
             return response
     
     def close(self):
@@ -258,13 +256,14 @@ def run_electronics_service(port=50051):
     server.add_insecure_port(f'[::]:{port}')
     server.start()
     
-    print(f"📱 ElectronicsService started on port {port}")
+    logger = get_logger('ElectronicsServiceMain')
+    logger.print_success(f"ElectronicsService started on port {port}")
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n🛑 Stopping ElectronicsService...")
+        logger.print_info("Stopping ElectronicsService...")
         electronics_service.close()
         server.stop(0)
 

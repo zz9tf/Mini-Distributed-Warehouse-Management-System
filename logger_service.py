@@ -15,6 +15,7 @@ import threading
 
 import warehouse_pb2
 import warehouse_pb2_grpc
+from warehouse_logger import get_logger
 
 
 class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
@@ -25,23 +26,24 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
     
     def __init__(self):
         """Initialize LoggerService"""
+        self.logger = get_logger('LoggerService')
         self.logs: List[Dict[str, Any]] = []
         self.lock = threading.Lock()
         self.log_file = "operation_log.json"
         
         # 加载现有日志
         self._load_logs()
-        print("📊 LoggerService initialized")
+        self.logger.print_debug("📊 LoggerService initialized")
     
     def _load_logs(self):
         """加载现有日志文件"""
         try:
             with open(self.log_file, 'r', encoding='utf-8') as f:
                 self.logs = json.load(f)
-            print(f"📂 Loaded {len(self.logs)} existing logs")
+            self.logger.print_debug(f"📂 Loaded {len(self.logs)} existing logs")
         except (FileNotFoundError, json.JSONDecodeError):
             self.logs = []
-            print("📂 No existing logs found, starting fresh")
+            self.logger.print_debug("📂 No existing logs found, starting fresh")
     
     def _save_logs(self):
         """保存日志到文件"""
@@ -84,13 +86,13 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
             
             # 打印到控制台
             status_emoji = "✅" if request.success else "❌"
-            print(f"📝 {status_emoji} [{timestamp}] {request.service_name} - {request.operation}")
+            self.logger.print_debug(f"📝 {status_emoji} [{timestamp}] {request.service_name} - {request.operation}")
             if request_data:
-                print(f"   📥 Request: {request_data}")
+                self.logger.print_debug(f"   📥 Request: {request_data}")
             if response_data:
-                print(f"   📤 Response: {response_data}")
+                self.logger.print_debug(f"   📤 Response: {response_data}")
             if request.error_message:
-                print(f"   ❌ Error: {request.error_message}")
+                self.logger.print_debug(f"   ❌ Error: {request.error_message}")
             
             return warehouse_pb2.LogResponse(
                 success=True,
@@ -98,7 +100,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
             )
             
         except Exception as e:
-            print(f"❌ [ERROR] LoggerService LogOperation error: {e}")
+            self.logger.print_debug(f"❌ [ERROR] LoggerService LogOperation error: {e}")
             return warehouse_pb2.LogResponse(
                 success=False,
                 message=f"Error: {str(e)}"
@@ -140,14 +142,14 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
                 )
                 log_entries.append(entry)
             
-            print(f"📊 QueryLogs: Found {len(log_entries)} logs")
+            self.logger.print_debug(f"📊 QueryLogs: Found {len(log_entries)} logs")
             return warehouse_pb2.QueryLogsResponse(
                 logs=log_entries,
                 total_count=len(filtered_logs)
             )
             
         except Exception as e:
-            print(f"❌ [ERROR] LoggerService QueryLogs error: {e}")
+            self.logger.print_debug(f"❌ [ERROR] LoggerService QueryLogs error: {e}")
             return warehouse_pb2.QueryLogsResponse(
                 logs=[],
                 total_count=0
@@ -209,7 +211,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
                         success_rate=operation_success_rate
                     ))
                 
-                print(f"📈 GetStats: {total_operations} total operations, {success_rate:.1f}% success rate")
+                self.logger.print_debug(f"📈 GetStats: {total_operations} total operations, {success_rate:.1f}% success rate")
                 return warehouse_pb2.StatsResponse(
                     total_operations=total_operations,
                     successful_operations=successful_operations,
@@ -220,7 +222,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
                 )
                 
         except Exception as e:
-            print(f"❌ [ERROR] LoggerService GetStats error: {e}")
+            self.logger.print_debug(f"❌ [ERROR] LoggerService GetStats error: {e}")
             return warehouse_pb2.StatsResponse(
                 total_operations=0,
                 successful_operations=0,
@@ -241,7 +243,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
             with open(self.log_file, 'w', encoding='utf-8') as f:
                 json.dump([], f, ensure_ascii=False, indent=2)
             
-            print(f"🗑️ ClearLogs: Cleared {cleared_count} logs")
+            self.logger.print_debug(f"🗑️ ClearLogs: Cleared {cleared_count} logs")
             return warehouse_pb2.ClearLogsResponse(
                 success=True,
                 message=f"Successfully cleared {cleared_count} logs",
@@ -249,7 +251,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
             )
             
         except Exception as e:
-            print(f"❌ [ERROR] LoggerService ClearLogs error: {e}")
+            self.logger.print_debug(f"❌ [ERROR] LoggerService ClearLogs error: {e}")
             return warehouse_pb2.ClearLogsResponse(
                 success=False,
                 message=f"Error: {str(e)}",
@@ -264,13 +266,14 @@ def run_logger_service(port=50055):
     server.add_insecure_port(f'[::]:{port}')
     server.start()
     
-    print(f"📊 LoggerService started on port {port}")
+    logger = get_logger('LoggerServiceMain')
+    logger.print_success(f"LoggerService started on port {port}")
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n🛑 Stopping LoggerService...")
+        self.logger.print_debug("\n🛑 Stopping LoggerService...")
         server.stop(0)
 
 

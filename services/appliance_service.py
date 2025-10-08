@@ -12,6 +12,7 @@ from concurrent import futures
 import warehouse_pb2
 import warehouse_pb2_grpc
 from logger_client import logger_client
+from warehouse_logger import get_logger
 
 
 class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
@@ -22,6 +23,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
     
     def __init__(self):
         """Initialize ApplianceService"""
+        self.logger = get_logger('ApplianceService')
         self.inventory = {
             "kitchen": {
                 "refrigerator": 5,
@@ -34,7 +36,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                 "coffee_table": 4
             }
         }
-        print("🏠 ApplianceService initialized")
+        self.logger.print_debug("🏠 ApplianceService initialized")
     
     def PlaceOrder(self, request, context):
         """处理下单请求"""
@@ -43,30 +45,30 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             subcategory = request.subcategory.lower()
             item = int(request.item)
             
-            print(f"🏠 [RECEIVED] ApplianceService - PlaceOrder Request:")
-            print(f"   📥 Category: {category}")
-            print(f"   📥 Subcategory: {subcategory}")
-            print(f"   📥 Item: {item}")
-            print(f"   📥 Client IP: {context.peer()}")
+            self.logger.print_debug(f"🏠 [RECEIVED] ApplianceService - PlaceOrder Request:")
+            self.logger.print_debug(f"   📥 Category: {category}")
+            self.logger.print_debug(f"   📥 Subcategory: {subcategory}")
+            self.logger.print_debug(f"   📥 Item: {item}")
+            self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
             
             # 检查库存
             if (category in self.inventory and 
                 subcategory in self.inventory[category]):
                 
                 current_stock = self.inventory[category][subcategory]
-                print(f"   📊 Current stock: {current_stock}")
+                self.logger.print_debug(f"   📊 Current stock: {current_stock}")
                 
                 if current_stock > item:
                     # 减少库存
                     self.inventory[category][subcategory] -= item
                     new_stock = self.inventory[category][subcategory]
                     
-                    print(f"   ✅ [SENDING] Order successful - Stock reduced to: {new_stock}")
+                    self.logger.print_debug(f"   ✅ [SENDING] Order successful - Stock reduced to: {new_stock}")
                     response = warehouse_pb2.OrderResponse(
                         status="ok",
                         left=new_stock
                     )
-                    print(f"   📤 Response: status={response.status}, left={response.left}")
+                    self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
                     
                     # 记录操作日志
                     logger_client.log_operation(
@@ -80,12 +82,12 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                     
                     return response
                 else:
-                    print(f"   ❌ [SENDING] Out of stock")
+                    self.logger.print_debug(f"   ❌ [SENDING] Out of stock")
                     response = warehouse_pb2.OrderResponse(
                         status="out of stock",
                         left=item
                     )
-                    print(f"   📤 Response: status={response.status}, left={response.left}")
+                    self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
                     
                     # 记录操作日志
                     logger_client.log_operation(
@@ -100,22 +102,22 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                     
                     return response
             else:
-                print(f"   ❌ [SENDING] Item not found in inventory")
+                self.logger.print_debug(f"   ❌ [SENDING] Item not found in inventory")
                 response = warehouse_pb2.OrderResponse(
                     status="item not found",
                     left=0
                 )
-                print(f"   📤 Response: status={response.status}, left={response.left}")
+                self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
                 return response
                 
         except Exception as e:
-            print(f"❌ [ERROR] ApplianceService PlaceOrder error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f" ApplianceService PlaceOrder error: {e}")
+            self.logger.print_debug(f"Sending Error response")
             response = warehouse_pb2.OrderResponse(
                 status="error",
                 left=0
             )
-            print(f"   📤 Response: status={response.status}, left={response.left}")
+            self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
             return response
     
     def PutItem(self, request, context):
@@ -125,29 +127,29 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             subcategory = request.subcategory.lower()
             item = int(request.item)
             
-            print(f"🏠 [RECEIVED] ApplianceService - PutItem Request:")
-            print(f"   📥 Category: {category}")
-            print(f"   📥 Subcategory: {subcategory}")
-            print(f"   📥 Item number: {item}")
-            print(f"   📥 Client IP: {context.peer()}")
+            self.logger.print_debug(f"🏠 [RECEIVED] ApplianceService - PutItem Request:")
+            self.logger.print_debug(f"   📥 Category: {category}")
+            self.logger.print_debug(f"   📥 Subcategory: {subcategory}")
+            self.logger.print_debug(f"   📥 Item number: {item}")
+            self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
             
             if category not in self.inventory:
                 self.inventory[category] = {}
-                print(f"   📝 Created new category: {category}")
+                self.logger.print_debug(f"   📝 Created new category: {category}")
             if subcategory not in self.inventory[category]:
                 self.inventory[category][subcategory] = 0
-                print(f"   📝 Created new subcategory: {subcategory}")
+                self.logger.print_debug(f"   📝 Created new subcategory: {subcategory}")
             
             old_count = self.inventory[category][subcategory]
             self.inventory[category][subcategory] += item
-            print(f"   📈 Incremented existing item: {item} ({old_count} → {self.inventory[category][subcategory]})")
+            self.logger.print_debug(f"   📈 Incremented existing item: {item} ({old_count} → {self.inventory[category][subcategory]})")
             
-            print(f"   ✅ [SENDING] PutItem successful")
+            self.logger.print_debug(f"   ✅ [SENDING] PutItem successful")
             response = warehouse_pb2.PutItemResponse(
                 success=True,
                 message=f"Added {item} to {category}/{subcategory}"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
+            self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -162,13 +164,13 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             return response
             
         except Exception as e:
-            print(f"❌ [ERROR] ApplianceService PutItem error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f" ApplianceService PutItem error: {e}")
+            self.logger.print_debug(f"Sending Error response")
             response = warehouse_pb2.PutItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
+            self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -190,33 +192,33 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             subcategory = request.subcategory.lower()
             item = int(request.item)
             
-            print(f"🏠 [RECEIVED] ApplianceService - UpdateItem Request:")
-            print(f"   📥 Category: {category}")
-            print(f"   📥 Subcategory: {subcategory}")
-            print(f"   📥 Item: {item}")
-            print(f"   📥 Client IP: {context.peer()}")
+            self.logger.print_debug(f"🏠 [RECEIVED] ApplianceService - UpdateItem Request:")
+            self.logger.print_debug(f"   📥 Category: {category}")
+            self.logger.print_debug(f"   📥 Subcategory: {subcategory}")
+            self.logger.print_debug(f"   📥 Item: {item}")
+            self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
             
             if category not in self.inventory:
                 self.inventory[category] = {}
-                print(f"   📝 Created new category: {category}")
+                self.logger.print_debug(f"   📝 Created new category: {category}")
             if subcategory not in self.inventory[category]:
                 self.inventory[category][subcategory] = 0
-                print(f"   📝 Created new subcategory: {subcategory}")
+                self.logger.print_debug(f"   📝 Created new subcategory: {subcategory}")
             
             if item < 0:
                 del self.inventory[category][subcategory]
-                print(f"   📝 Deleted subcategory: {subcategory} as it is now empty")
+                self.logger.print_debug(f"   📝 Deleted subcategory: {subcategory} as it is now empty")
             else:
                 old_count = self.inventory[category][subcategory]
                 self.inventory[category][subcategory] = item
-                print(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
+                self.logger.print_debug(f"   📈 Updated {category}/{subcategory}: {old_count} → {item}")
 
-            print(f"   ✅ [SENDING] UpdateItem successful")
+            self.logger.print_debug(f"   ✅ [SENDING] UpdateItem successful")
             response = warehouse_pb2.UpdateItemResponse(
                 success=True,
                 message=f"Updated {category}/{subcategory} to {item}"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
+            self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -231,13 +233,13 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             return response
             
         except Exception as e:
-            print(f"❌ [ERROR] ApplianceService UpdateItem error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f" ApplianceService UpdateItem error: {e}")
+            self.logger.print_debug(f"Sending Error response")
             response = warehouse_pb2.UpdateItemResponse(
                 success=False,
                 message=f"Error: {str(e)}"
             )
-            print(f"   📤 Response: success={response.success}, message={response.message}")
+            self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -258,22 +260,22 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             category = request.category.lower()
             subcategory = request.subcategory.lower()
             
-            print(f"🏠 [RECEIVED] ApplianceService - ListItems Request:")
-            print(f"   📥 Category: {category}")
-            print(f"   📥 Subcategory: {subcategory}")
-            print(f"   📥 Client IP: {context.peer()}")
+            self.logger.print_debug(f"🏠 [RECEIVED] ApplianceService - ListItems Request:")
+            self.logger.print_debug(f"   📥 Category: {category}")
+            self.logger.print_debug(f"   📥 Subcategory: {subcategory}")
+            self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
             
             items = []
             if (category in self.inventory and 
                 subcategory in self.inventory[category]):
                 items.append(str(self.inventory[category][subcategory]))
-                print(f"   📋 Found {str(self.inventory[category][subcategory])} items in {category}/{subcategory}")
+                self.logger.print_debug(f"   📋 Found {str(self.inventory[category][subcategory])} items in {category}/{subcategory}")
             else:
-                print(f"   📋 No items found in {category}/{subcategory}")
+                self.logger.print_debug(f"   📋 No items found in {category}/{subcategory}")
             
-            print(f"   ✅ [SENDING] ListItems successful")
+            self.logger.print_debug(f"   ✅ [SENDING] ListItems successful")
             response = warehouse_pb2.ListItemsResponse(items=items)
-            print(f"   📤 Response: {len(response.items)} items")
+            self.logger.print_debug(f"Response: {len(response.items)} items")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -288,10 +290,10 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             return response
             
         except Exception as e:
-            print(f"❌ [ERROR] ApplianceService ListItems error: {e}")
-            print(f"   📤 [SENDING] Error response")
+            self.logger.print_debug(f" ApplianceService ListItems error: {e}")
+            self.logger.print_debug(f"Sending Error response")
             response = warehouse_pb2.ListItemsResponse(items=[])
-            print(f"   📤 Response: {len(response.items)} items")
+            self.logger.print_debug(f"Response: {len(response.items)} items")
             
             # 记录操作日志
             logger_client.log_operation(
@@ -314,13 +316,14 @@ def run_appliance_service(port=50054):
     server.add_insecure_port(f'[::]:{port}')
     server.start()
     
-    print(f"🏠 ApplianceService started on port {port}")
+    logger = get_logger('ApplianceServiceMain')
+    logger.print_success(f"ApplianceService started on port {port}")
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n🛑 Stopping ApplianceService...")
+        self.logger.print_debug("\n🛑 Stopping ApplianceService...")
         server.stop(0)
 
 
