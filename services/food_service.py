@@ -43,6 +43,17 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             
             self.logger.print_debug(f"Response from FreshService: status={response.status}, left={response.left}")
             self.logger.print_debug("PlaceOrder completed successfully")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="PlaceOrder",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"status": response.status, "left": response.left},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except grpc.RpcError as e:
@@ -51,6 +62,18 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 status="service unavailable",
                 left=0
             )
+            
+            # 记录错误日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="PlaceOrder",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"status": response.status, "left": response.left},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"gRPC error: {str(e)}"
+            )
+            
             return response
         except Exception as e:
             self.logger.print_debug(f"PlaceOrder error: {e}")
@@ -58,6 +81,18 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 status="error",
                 left=0
             )
+            
+            # 记录错误日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="PlaceOrder",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"status": response.status, "left": response.left},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"Error: {str(e)}"
+            )
+            
             return response
     
     def PutItem(self, request, context):
@@ -73,6 +108,17 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             
             self.logger.print_debug(f"Response from FreshService: success={response.success}, message={response.message}")
             self.logger.print_debug("PutItem completed successfully")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="PutItem",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=response.success
+            )
+            
             return response
             
         except grpc.RpcError as e:
@@ -81,6 +127,18 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 success=False,
                 message="Service unavailable"
             )
+            
+            # 记录错误日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="PutItem",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"gRPC error: {str(e)}"
+            )
+            
             return response
         except Exception as e:
             self.logger.print_debug(f"PutItem error: {e}")
@@ -88,6 +146,18 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 success=False,
                 message=f"Error: {str(e)}"
             )
+            
+            # 记录错误日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="PutItem",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"Error: {str(e)}"
+            )
+            
             return response
     
     def UpdateItem(self, request, context):
@@ -103,6 +173,17 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             
             self.logger.print_debug(f"Response from FreshService: success={response.success}, message={response.message}")
             self.logger.print_debug("UpdateItem completed successfully")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="UpdateItem",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=response.success
+            )
+            
             return response
             
         except grpc.RpcError as e:
@@ -111,6 +192,18 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 success=False,
                 message="Service unavailable"
             )
+            
+            # 记录错误日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="UpdateItem",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"gRPC error: {str(e)}"
+            )
+            
             return response
         except Exception as e:
             self.logger.print_debug(f"UpdateItem error: {e}")
@@ -118,6 +211,18 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 success=False,
                 message=f"Error: {str(e)}"
             )
+            
+            # 记录错误日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="UpdateItem",
+                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
+                response_data={"success": response.success, "message": response.message},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"Error: {str(e)}"
+            )
+            
             return response
     
     def ListItems(self, request, context):
@@ -135,6 +240,17 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             for i, item in enumerate(response.items):
                 self.logger.print_debug(f"Item {i+1}: {item}")
             self.logger.print_debug("ListItems completed successfully")
+            
+            # 记录操作日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="ListItems",
+                request_data={"category": request.category, "subcategory": request.subcategory},
+                response_data={"items_count": len(response.items), "items": [{"name": item.name, "count": item.count} for item in response.items]},
+                client_ip=context.peer(),
+                success=True
+            )
+            
             return response
             
         except grpc.RpcError as e:
@@ -142,12 +258,36 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug("Sending empty response due to service unavailable")
             response = warehouse_pb2.ListItemsResponse(items=[])
             self.logger.print_debug(f"Response: {len(response.items)} items")
+            
+            # 记录错误日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="ListItems",
+                request_data={"category": request.category, "subcategory": request.subcategory},
+                response_data={"items_count": 0, "items": []},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"gRPC error: {str(e)}"
+            )
+            
             return response
         except Exception as e:
             self.logger.print_debug(f"FoodService ListItems error: {e}")
             self.logger.print_debug("Sending empty response due to error")
             response = warehouse_pb2.ListItemsResponse(items=[])
             self.logger.print_debug(f"Response: {len(response.items)} items")
+            
+            # 记录错误日志
+            logger_client.log_operation(
+                service_name="FoodService",
+                operation="ListItems",
+                request_data={"category": request.category, "subcategory": request.subcategory},
+                response_data={"items_count": 0, "items": []},
+                client_ip=context.peer(),
+                success=False,
+                error_message=f"Error: {str(e)}"
+            )
+            
             return response
     
     def close(self):

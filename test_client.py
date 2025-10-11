@@ -357,7 +357,6 @@ def collect_results(client, test_name):
     """收集客户端测试结果到全局结果中"""
     global global_latency_results, global_throughput_results
     
-    
     for key, value in client.latency_results.items():
         global_latency_results[f"{test_name}_{key}"] = value
     

@@ -1,163 +1,292 @@
-# Simple gRPC Server Framework
+# Mini Distributed Warehouse Management System
 
-A simple and clean gRPC server framework that supports custom proto-generated code.
+A distributed warehouse management system designed and implemented for CSE 5306 Distributed Systems course. This project demonstrates two distinct system architectures with different communication models, supporting five functional requirements across five containerized nodes.
+
+## 🎯 Project Overview
+
+This distributed system implements a warehouse management solution with two different architectural approaches:
+
+1. **Layered Architecture** - Traditional 3-tier architecture with API Gateway, Middle-tier services, and Bottom-tier services
+2. **Microservice Architecture** - Service-oriented architecture with independent, loosely-coupled services
+
+## 🏗️ System Architecture
+
+### Architecture 1: Layered Architecture (gRPC)
+
+```
+┌─────────────────┐
+│   API Gateway   │ ← Client requests
+│   (Port 50050)  │
+└─────────┬───────┘
+          │ gRPC
+┌─────────▼───────┐
+│ Middle Services │
+│ Food (50052)    │
+│ Electronics(50051)│
+└─────────┬───────┘
+          │ gRPC
+┌─────────▼───────┐
+│ Bottom Services │
+│ Fresh (50053)   │
+│ Appliance(50054)│
+└─────────────────┘
+```
+
+## 📋 Functional Requirements
+
+1. **Add Item Resource** - Add new inventory items to the warehouse system
+2. **Update Item Resource** - Modify details of existing inventory items
+3. **Take Item Resource** - Process and deduct items from inventory during order fulfillment
+4. **Query Item Resource** - Retrieve and filter inventory data by category, stock level, or other attributes
+5. **Distributed Logging of Operations** - Implement centralized logging, service discovery, and monitoring for all operations
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### Prerequisites
+
+- Docker and Docker Compose
+- gRPC tools
+
+### 1. Clone Repository
 
 ```bash
-pip install -r requirements.txt
+git clone <repository-url>
+cd Mini-Distributed-Warehouse-Management-System
 ```
 
-### 2. Generate Your Proto Code
+### 2. Generate Protocol Buffers
 
 ```bash
-python -m grpc_tools.protoc -I your_proto_dir --python_out=. --grpc_python_out=. your_proto_file.proto
+./regenerate_proto.sh
 ```
 
-### 3. Create Service Implementation
+### 3. Build and Run System
 
-```python
-# your_service.py
-import your_proto_pb2
-import your_proto_pb2_grpc
-
-class YourService(your_proto_pb2_grpc.YourServiceServicer):
-    def YourMethod(self, request, context):
-        return your_proto_pb2.YourResponse(message="Hello from your service!")
+```bash
+# It will clean your old containers, images, and caches
+./dev.sh
 ```
 
-### 4. Start Server
+If you just want to start it, you may want to try:
 
-```python
-# main.py
-from simple_grpc_server import SimpleGRPCServer
-from your_service import YourService
-import your_proto_pb2_grpc
-
-# Create server
-server = SimpleGRPCServer()
-
-# Add service
-server.add_service(
-    port=50051,
-    service_servicer=YourService(),
-    service_adder_func=your_proto_pb2_grpc.add_YourServiceServicer_to_server
-)
-
-# Run server
-server.run()
+```bash
+docker compose up
 ```
 
-### 5. Test with Client
+### 4. Stop System
 
-```python
-# test_client.py
-from simple_grpc_client import SimpleGRPCClient
-import your_proto_pb2_grpc
-import your_proto_pb2
+Try to ctrl+c to stop the `docker compose up` command
 
-# Create client
-client = SimpleGRPCClient(host='localhost', port=50051)
-
-# Connect to service
-client.connect(your_proto_pb2_grpc.YourServiceStub)
-
-# Test health check
-client.test_health_check(
-    your_proto_pb2.HealthCheckRequest,
-    your_proto_pb2.HealthCheckResponse
-)
-
-# Test custom method
-request = your_proto_pb2.YourRequest(message="Hello from client!")
-client.test_custom_method("YourMethod", request)
-
-# Close connection
-client.close()
+```bash
+docker-compose down
 ```
 
 ## 📁 Project Structure
 
 ```
 Mini-Distributed-Warehouse-Management-System/
-├── README.md
-├── LICENSE
-├── requirements.txt               # Python dependencies
-├── simple_grpc_server.py         # Main gRPC server framework
-├── simple_grpc_client.py         # Simple gRPC client for testing
-├── example_usage.py              # Usage examples
-└── Dockerfile                    # Docker configuration
+├── README.md                    # This file
+├── LICENSE                      # MIT License
+├── docker-compose.yml           # Multi-container orchestration
+├── Dockerfile                   # Container configuration
+├── warehouse.proto              # gRPC service definitions
+├── warehouse_pb2.py             # Generated Python protobuf classes
+├── warehouse_pb2_grpc.py        # Generated gRPC service stubs
+├── api_gateway.py               # API Gateway service
+├── logger_service.py            # Centralized logging service
+├── warehouse_logger.py          # Unified logging utility
+├── test_client.py               # Performance testing client
+├── services/                    # Service implementations
+│   ├── food_service.py          # Food category service
+│   ├── electronics_service.py   # Electronics service
+│   ├── fresh_service.py         # Fresh products service
+│   └── appliance_service.py     # Appliance service
+├── dev.sh                       # Development helper script
+└── regenerate_proto.sh          # Protocol buffer generation
 ```
 
-## 🔧 Available Ports
+## 🔧 Service Configuration
 
-- **Port 50051**: Available for your custom service
-- **Port 50052**: Available for your custom service
+### Port Allocation
 
-## 📚 API Reference
+- **50050**: API Gateway
+- **50051**: Electronics Service
+- **50052**: Food Service
+- **50053**: Fresh Service
+- **50054**: Appliance Service
+- **50055**: Logger Service
 
-### SimpleGRPCServer Class
+### Environment Variables
 
-#### `add_service(port, service_servicer, service_adder_func, max_workers=10)`
+- `LOG_LEVEL`: Logging verbosity (DEBUG, INFO, WARNING, ERROR)
+- `SERVICE_NAME`: Service identifier for logging
+- `MAX_WORKERS`: gRPC server thread pool size
 
-Add gRPC service to specified port
+## 🧪 Performance Testing
 
-**Parameters:**
+The system includes comprehensive performance testing capabilities:
 
-- `port`: Service port number
-- `service_servicer`: Your service implementation instance
-- `service_adder_func`: Proto-generated service adder function
-- `max_workers`: Maximum worker threads (optional, default 10)
+### Test Scenarios
 
-**Example:**
+1. **Single Bottom Container** - Direct access to one bottom-tier service
+2. **Two Bottom Containers** - Concurrent access to two bottom-tier services
+3. **Single Middle Container** - Direct access to one middle-tier service
+4. **Two Middle Containers** - Concurrent access to two middle-tier services
+5. **API Gateway Performance** - End-to-end testing through API Gateway
+6. **Logger Service Operations** - Logging service performance
 
-```python
-server.add_service(
-    port=50051,
-    service_servicer=MyService(),
-    service_adder_func=my_proto_pb2_grpc.add_MyServiceServicer_to_server
-)
+### Metrics Measured
+
+- **Latency**: Average, P50, P90, P95, P99, Min, Max response times
+- **Throughput**: Requests per second (QPS) under concurrent load
+- **Success Rate**: Percentage of successful vs failed requests
+- **Resource Utilization**: CPU, memory, and network usage
+
+### Running Tests
+
+```bash
+# Run all performance tests
+docker-compose up test-client
+
+# Run specific test scenario
+docker-compose exec test-client python test_client.py --scenario single_bottom
+
+# View detailed results
+docker-compose logs -f test-client
 ```
 
-#### `start_all_servers()`
+## 📊 Performance Results
 
-Start all added services
+### Sample Results (Layered Architecture)
 
-#### `stop_all_servers()`
-
-Stop all services
-
-#### `run()`
-
-Run server (blocking call)
+```
+测试场景                 服务              操作          Count  Avg(ms)  P50(ms)  P90(ms)  P95(ms)  P99(ms)
+SingleBottom         FreshService    ListItems     30     1.57     1.53     2.00     2.41     4.27
+SingleBottom         FreshService    PlaceOrder    30     1.50     1.29     2.52     2.83     3.09
+APIGateway           APIGateway      ListItems     30     2.15     2.10     2.85     3.20     4.50
+APIGateway           APIGateway      PlaceOrder    30     2.45     2.30     3.10     3.55     4.80
+```
 
 ## 🛠️ Technology Stack
 
 - **Language**: Python 3.8+
-- **Communication**: gRPC
-- **Containerization**: Docker
-- **Testing**: Unit tests, integration tests
+- **Communication**: gRPC, HTTP
+- **Containerization**: Docker, Docker Compose
+- **Protocol Buffers**: gRPC service definitions
+- **Logging**: Structured logging with multiple levels
+- **Testing**: Performance benchmarking and load testing
 
-## 💡 Usage Tips
+## 🔍 System Design Trade-offs
 
-1. **Port Selection**: Use any available port, framework handles automatically
-2. **Multiple Services**: Add multiple services to different ports
-3. **Error Handling**: Framework includes basic error and signal handling
-4. **Thread Safety**: Each service uses independent thread pool
+### Layered Architecture (gRPC)
 
-## 🛑 Stop Services
+**Advantages:**
 
-Use `Ctrl+C` or send `SIGTERM` signal to stop all services.
+- Clear separation of concerns
+- Efficient binary protocol
+- Strong typing with Protocol Buffers
+- Built-in load balancing
 
-## 📝 Notes
+**Disadvantages:**
 
-- Ensure your proto files generate Python code correctly
-- Service implementation must inherit from proto-generated Servicer base class
-- Ports cannot be reused
-- Framework handles gRPC low-level details automatically
+- Tight coupling between layers
+- Complex error handling
+- Limited HTTP compatibility
+
+### Microservice Architecture (HTTP)
+
+**Advantages:**
+
+- Loose coupling between services
+- HTTP compatibility
+- Easy debugging and monitoring
+- Technology diversity
+
+**Disadvantages:**
+
+- Higher latency overhead
+- JSON parsing overhead
+- Less efficient than binary protocols
+
+## 🤖 AI Tools Usage
+
+This project extensively leveraged AI tools for:
+
+1. **Code Generation**: Automated service implementations and boilerplate code
+2. **Architecture Design**: System design recommendations and trade-off analysis
+3. **Performance Optimization**: Code optimization and bottleneck identification
+4. **Testing**: Automated test case generation and performance analysis
+5. **Documentation**: README generation and code documentation
+
+## 📈 Scalability Analysis
+
+### Horizontal Scaling
+
+- Each service can be independently scaled
+- Load balancing through API Gateway
+- Stateless service design enables easy replication
+
+### Vertical Scaling
+
+- Configurable thread pools per service
+- Memory and CPU optimization per container
+- Resource monitoring and alerting
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+1. **Port Conflicts**: Ensure ports 50050-50055 are available
+2. **Docker Issues**: Run `docker system prune -f` to clean up
+3. **gRPC Errors**: Regenerate protobuf files with `./regenerate_proto.sh`
+4. **Performance Issues**: Check container resource limits
+
+### Debug Mode
+
+```bash
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+docker-compose up
+
+# View detailed logs
+docker-compose logs -f api-gateway
+```
+
+## 📚 API Documentation
+
+### gRPC Services
+
+- **WarehouseService**: Core warehouse operations
+- **LoggerService**: Centralized logging operations
+
+### HTTP Endpoints (Microservice Architecture)
+
+- `GET /api/items/{category}`: List items by category
+- `POST /api/orders`: Place new order
+- `PUT /api/items/{id}`: Update item information
+- `GET /api/logs`: Query operation logs
+
+## 🎓 Educational Objectives
+
+This project demonstrates:
+
+- Distributed system design principles
+- Communication model trade-offs
+- Performance evaluation methodologies
+- Container orchestration
+- Service-oriented architecture patterns
+- Load testing and benchmarking
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Team
+
+- **Course**: CSE 5306 Distributed Systems
+- **Semester**: Fall 2024
+- **Institution**: [Your University]
+
+## 📞 Support
+
+For questions or issues, please refer to the course documentation or contact the development team.
