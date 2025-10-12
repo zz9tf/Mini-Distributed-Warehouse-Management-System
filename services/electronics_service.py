@@ -28,6 +28,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
         self.logger = get_logger('ElectronicsService')
         self.appliance_service_channel = grpc.insecure_channel(f'{appliance_service_host}:{appliance_service_port}')
         self.appliance_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.appliance_service_channel)
+        self.logging_enabled = True  # 默认启用日志
         self.logger.print_success("ElectronicsService initialized")
     
     def PlaceOrder(self, request, context):
@@ -44,16 +45,6 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response from ApplianceService: status={response.status}, left={response.left}")
             self.logger.print_debug("PlaceOrder completed successfully")
             
-            # 记录操作日志
-            logger_client.log_operation(
-                service_name="ElectronicsService",
-                operation="PlaceOrder",
-                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
-                response_data={"status": response.status, "left": response.left},
-                client_ip=context.peer(),
-                success=True
-            )
-            
             return response
             
         except grpc.RpcError as e:
@@ -65,17 +56,6 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
             
-            # 记录操作日志
-            logger_client.log_operation(
-                service_name="ElectronicsService",
-                operation="PlaceOrder",
-                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
-                response_data={"status": response.status, "left": response.left},
-                client_ip=context.peer(),
-                success=False,
-                error_message=f"gRPC error: {str(e)}"
-            )
-            
             return response
         except Exception as e:
             self.logger.print_debug(f" ElectronicsService PlaceOrder error: {e}")
@@ -86,16 +66,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
             
-            # 记录操作日志
-            logger_client.log_operation(
-                service_name="ElectronicsService",
-                operation="PlaceOrder",
-                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
-                response_data={"status": response.status, "left": response.left},
-                client_ip=context.peer(),
-                success=False,
-                error_message=str(e)
-            )
+            
             
             return response
     
@@ -117,16 +88,6 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"   📨 Message: {response.message}")
             self.logger.print_debug(f"   ✅ [SENDING] Forwarding response to client")
             
-            # 记录操作日志
-            logger_client.log_operation(
-                service_name="ElectronicsService",
-                operation="PutItem",
-                request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
-                response_data={"success": response.success, "message": response.message},
-                client_ip=context.peer(),
-                success=True
-            )
-            
             return response
             
         except grpc.RpcError as e:
@@ -138,17 +99,6 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
-            # 记录操作日志
-            logger_client.log_operation(
-                service_name="ElectronicsService",
-                operation="PutItem",
-                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
-                response_data={"success": response.success, "message": response.message},
-                client_ip=context.peer(),
-                success=False,
-                error_message=f"gRPC error: {str(e)}"
-            )
-            
             return response
         except Exception as e:
             self.logger.print_debug(f" ElectronicsService PutItem error: {e}")
@@ -158,17 +108,6 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
-            
-            # 记录操作日志
-            logger_client.log_operation(
-                service_name="ElectronicsService",
-                operation="PutItem",
-                request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
-                response_data={"success": response.success, "message": response.message},
-                client_ip=context.peer(),
-                success=False,
-                error_message=str(e)
-            )
             
             return response
     
@@ -189,6 +128,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"   📨 Success: {response.success}")
             self.logger.print_debug(f"   📨 Message: {response.message}")
             self.logger.print_debug(f"   ✅ [SENDING] Forwarding response to client")
+            
             return response
             
         except grpc.RpcError as e:
@@ -199,6 +139,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
                 message="Service unavailable"
             )
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
+            
             return response
         except Exception as e:
             self.logger.print_debug(f" ElectronicsService UpdateItem error: {e}")
@@ -208,6 +149,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
+            
             return response
     
     def ListItems(self, request, context):
@@ -227,6 +169,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             for i, item in enumerate(response.items):
                 self.logger.print_debug(f"   📨 Item {i+1}: {item}")
             self.logger.print_debug(f"   ✅ [SENDING] Forwarding response to client")
+            
             return response
             
         except grpc.RpcError as e:
@@ -234,13 +177,33 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Sending Empty response due to service unavailable")
             response = warehouse_pb2.ListItemsResponse(items=[])
             self.logger.print_debug(f"Response: {len(response.items)} items")
+            
             return response
         except Exception as e:
             self.logger.print_debug(f" ElectronicsService ListItems error: {e}")
             self.logger.print_debug(f"Sending Empty response due to error")
             response = warehouse_pb2.ListItemsResponse(items=[])
             self.logger.print_debug(f"Response: {len(response.items)} items")
+            
             return response
+    
+    def ConfigureLogging(self, request, context):
+        """配置日志记录状态"""
+        try:
+            self.logging_enabled = request.enable_logging
+            status = "启用" if self.logging_enabled else "禁用"
+            self.logger.print_info(f"日志记录已{status}")
+            
+            return warehouse_pb2.ConfigureLoggingResponse(
+                success=True,
+                message=f"日志记录已{status}"
+            )
+        except Exception as e:
+            self.logger.print_error(f"配置日志记录失败: {e}")
+            return warehouse_pb2.ConfigureLoggingResponse(
+                success=False,
+                message=f"配置失败: {str(e)}"
+            )
     
     def close(self):
         """关闭连接"""

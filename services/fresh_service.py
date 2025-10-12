@@ -36,7 +36,21 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 "lettuce": 20
             }
         }
+        self.logging_enabled = True  # 默认启用日志
         self.logger.print_debug("🥬 FreshService initialized")
+    
+    def _log_operation(self, service_name, operation, request_data, response_data, client_ip, success=True, error_message=None):
+        """条件日志记录方法"""
+        if self.logging_enabled:
+            logger_client.log_operation(
+                service_name=service_name,
+                operation=operation,
+                request_data=request_data,
+                response_data=response_data,
+                client_ip=client_ip,
+                success=success,
+                error_message=error_message
+            )
     
     def PlaceOrder(self, request, context):
         """处理下单请求"""
@@ -71,7 +85,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                     self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
                     
                     # 记录操作日志
-                    logger_client.log_operation(
+                    self._log_operation(
                         service_name="FreshService",
                         operation="PlaceOrder",
                         request_data={"category": category, "subcategory": subcategory, "item": item},
@@ -90,7 +104,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                     self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
                     
                     # 记录操作日志
-                    logger_client.log_operation(
+                    self._log_operation(
                         service_name="FreshService",
                         operation="PlaceOrder",
                         request_data={"category": category, "subcategory": subcategory, "item": item},
@@ -110,7 +124,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
                 self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
                 
                 # 记录操作日志
-                logger_client.log_operation(
+                self._log_operation(
                     service_name="FreshService",
                     operation="PlaceOrder",
                     request_data={"category": category, "subcategory": subcategory, "item": item},
@@ -132,7 +146,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FreshService",
                 operation="PlaceOrder",
                 request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
@@ -176,7 +190,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FreshService",
                 operation="PutItem",
                 request_data={"category": category, "subcategory": subcategory, "item": item},
@@ -197,7 +211,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FreshService",
                 operation="PutItem",
                 request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
@@ -245,7 +259,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FreshService",
                 operation="UpdateItem",
                 request_data={"category": category, "subcategory": subcategory, "item": item},
@@ -266,7 +280,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FreshService",
                 operation="UpdateItem",
                 request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', ''), "item": getattr(request, 'item', '')},
@@ -299,7 +313,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: {len(response.items)} items")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FreshService",
                 operation="ListItems",
                 request_data={"category": category, "subcategory": subcategory},
@@ -317,7 +331,7 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: {len(response.items)} items")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FreshService",
                 operation="ListItems",
                 request_data={"category": getattr(request, 'category', ''), "subcategory": getattr(request, 'subcategory', '')},
@@ -328,6 +342,24 @@ class FreshService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             
             return response
+    
+    def ConfigureLogging(self, request, context):
+        """配置日志记录状态"""
+        try:
+            self.logging_enabled = request.enable_logging
+            status = "启用" if self.logging_enabled else "禁用"
+            self.logger.print_info(f"日志记录已{status}")
+            
+            return warehouse_pb2.ConfigureLoggingResponse(
+                success=True,
+                message=f"日志记录已{status}"
+            )
+        except Exception as e:
+            self.logger.print_error(f"配置日志记录失败: {e}")
+            return warehouse_pb2.ConfigureLoggingResponse(
+                success=False,
+                message=f"配置失败: {str(e)}"
+            )
 
 
 def run_fresh_service(port=50053):

@@ -35,9 +35,24 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
         self.electronics_service_channel = grpc.insecure_channel(f'{electronics_service_host}:{electronics_service_port}')
         self.electronics_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.electronics_service_channel)
         
+        self.logging_enabled = True  # 默认启用日志
         self.logger.print_success("API Gateway initialized")
         self.logger.print_info(f"FoodService: {food_service_host}:{food_service_port}")
         self.logger.print_info(f"ElectronicsService: {electronics_service_host}:{electronics_service_port}")
+    
+    def _log_operation(self, service_name, operation, request_data, response_data, client_ip, success=True, error_message=None):
+        """条件日志记录方法"""
+        if self.logging_enabled:
+            from logger_client import logger_client
+            self._log_operation(
+                service_name=service_name,
+                operation=operation,
+                request_data=request_data,
+                response_data=response_data,
+                client_ip=client_ip,
+                success=success,
+                error_message=error_message
+            )
     
     def _route_request(self, request):
         """根据请求类别路由到相应服务"""
@@ -178,6 +193,24 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_error(f"ListItems error: {e}")
             response = warehouse_pb2.ListItemsResponse(items=[])
             return response
+    
+    def ConfigureLogging(self, request, context):
+        """配置日志记录状态"""
+        try:
+            self.logging_enabled = request.enable_logging
+            status = "start logging" if self.logging_enabled else "stop logging"
+            self.logger.print_info(f"日志记录已{status}")
+            
+            return warehouse_pb2.ConfigureLoggingResponse(
+                success=True,
+                message=f"日志记录已{status}"
+            )
+        except Exception as e:
+            self.logger.print_error(f"配置日志记录失败: {e}")
+            return warehouse_pb2.ConfigureLoggingResponse(
+                success=False,
+                message=f"Failed to configure logging: {str(e)}"
+            )
     
     def close(self):
         """关闭连接"""

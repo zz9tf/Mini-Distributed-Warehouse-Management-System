@@ -139,6 +139,7 @@ service OrderService {
   rpc PutItem(PutItemRequest) returns (PutItemResponse);
   rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse);
   rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+  rpc ConfigureLogging(ConfigureLoggingRequest) returns (ConfigureLoggingResponse);
 }
 
 // 清空日志请求
@@ -151,6 +152,17 @@ message ClearLogsResponse {
   bool success = 1;
   string message = 2;
   int32 cleared_count = 3;
+}
+
+// 配置日志请求
+message ConfigureLoggingRequest {
+  bool enable_logging = 1;  // 是否启用日志记录
+}
+
+// 配置日志响应
+message ConfigureLoggingResponse {
+  bool success = 1;
+  string message = 2;
 }
 
 // 日志服务

@@ -57,6 +57,11 @@ class OrderServiceStub(object):
                 request_serializer=warehouse__pb2.ListItemsRequest.SerializeToString,
                 response_deserializer=warehouse__pb2.ListItemsResponse.FromString,
                 _registered_method=True)
+        self.ConfigureLogging = channel.unary_unary(
+                '/warehouse.OrderService/ConfigureLogging',
+                request_serializer=warehouse__pb2.ConfigureLoggingRequest.SerializeToString,
+                response_deserializer=warehouse__pb2.ConfigureLoggingResponse.FromString,
+                _registered_method=True)
 
 
 class OrderServiceServicer(object):
@@ -89,6 +94,12 @@ class OrderServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ConfigureLogging(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_OrderServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -111,6 +122,11 @@ def add_OrderServiceServicer_to_server(servicer, server):
                     servicer.ListItems,
                     request_deserializer=warehouse__pb2.ListItemsRequest.FromString,
                     response_serializer=warehouse__pb2.ListItemsResponse.SerializeToString,
+            ),
+            'ConfigureLogging': grpc.unary_unary_rpc_method_handler(
+                    servicer.ConfigureLogging,
+                    request_deserializer=warehouse__pb2.ConfigureLoggingRequest.FromString,
+                    response_serializer=warehouse__pb2.ConfigureLoggingResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -224,6 +240,33 @@ class OrderService(object):
             '/warehouse.OrderService/ListItems',
             warehouse__pb2.ListItemsRequest.SerializeToString,
             warehouse__pb2.ListItemsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ConfigureLogging(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/warehouse.OrderService/ConfigureLogging',
+            warehouse__pb2.ConfigureLoggingRequest.SerializeToString,
+            warehouse__pb2.ConfigureLoggingResponse.FromString,
             options,
             channel_credentials,
             insecure,

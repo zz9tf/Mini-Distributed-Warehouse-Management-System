@@ -158,14 +158,14 @@ class WarehouseTestClient:
         successes = 0
         failures = 0
         for i in range(iterations):
-            start = time.perf_counter()
+            start = time.perf_counter_ns()
             try:
                 call_func()
-                elapsed_ms = (time.perf_counter() - start) * 1000.0
+                elapsed_ms = (time.perf_counter_ns() - start) /1000
                 latencies_ms.append(elapsed_ms)
                 successes += 1
             except Exception as e:
-                elapsed_ms = (time.perf_counter() - start) * 1000.0
+                elapsed_ms = (time.perf_counter_ns() - start) / 1000
                 latencies_ms.append(elapsed_ms)
                 failures += 1
                 self.logger.print_warning(f"error@{i+1}: {e}")
@@ -180,7 +180,7 @@ class WarehouseTestClient:
             result_key = f"{self.host}_{operation}"
             self.latency_results[result_key] = {
                 'count': len(latencies_ms),
-                'avg': statistics.mean(latencies_ms),
+                'avg': sum(latencies_ms) / len(latencies_ms),
                 'min': min(latencies_ms),
                 'p50': WarehouseTestClient._percentile(latencies_ms, 50),
                 'p90': WarehouseTestClient._percentile(latencies_ms, 90),
@@ -224,10 +224,17 @@ class WarehouseTestClient:
         failures = 0
         lock = threading.Lock()
 
+        skip_time = 7
         def worker(worker_id: int):
             nonlocal successes, failures
             # 每个线程复用同一个 stub 是安全的（gRPC Channel/Stub 线程安全）
             while time.time() < stop_at:
+                if time.time() - start_wall <= skip_time:
+                    try:
+                        call_func()
+                    except Exception:
+                        pass
+                    continue
                 start = time.perf_counter()
                 try:
                     call_func()
@@ -254,7 +261,7 @@ class WarehouseTestClient:
 
         elapsed = max(1e-9, end_wall - start_wall)
         total = successes + failures
-        qps = total / elapsed
+        qps = total / (elapsed - skip_time)
 
         self.logger.print_info(f"{operation} - Workers={concurrency}, duration={elapsed:.2f}s, total={total}, success={successes}, failure={failures}, QPS={qps:.2f}")
         self._print_latency_stats(latencies_ms, label=f"Latency({operation})")
@@ -273,8 +280,6 @@ class WarehouseTestClient:
             'latency_p95': WarehouseTestClient._percentile(latencies_ms, 95) if latencies_ms else 0,
             'latency_p99': WarehouseTestClient._percentile(latencies_ms, 99) if latencies_ms else 0
         }
-
-
 
 def run_service_tests_concurrently(service_configs, test_type, logger):
     """并发运行多个服务的测试
@@ -418,7 +423,6 @@ def print_global_throughput_table(logger):
     
     logger.print_info("=" * 120)
 
-
 def test_single_bottom_container(client, logger):
     """测试单个底层容器（直接访问一个底层服务）"""
     logger.print_info("=" * 80)
@@ -555,21 +559,31 @@ def test_single_middle_container(client, logger):
     
     logger.print_success("✅ 单个中层容器测试完成!")
 
-def test_api_gateway_performance(client, logger):
-    """测试API Gateway性能（通过API Gateway访问所有服务）"""
+def test_api_gateway_performance(client, logger, enable_logging=True):
+    """测试API Gateway性能（通过API Gateway访问所有服务）
+    
+    Args:
+        client: 测试客户端
+        logger: 日志记录器
+        enable_logging: 是否启用日志记录 (True/False)
+    """
+    logging_status = "启用日志" if enable_logging else "禁用日志"
     logger.print_info("=" * 80)
-    logger.print_info("🎯 5. API Gateway性能测试 (API Gateway Performance)")
+    logger.print_info(f"🎯 API Gateway性能测试 (API Gateway Performance) - {logging_status}")
     logger.print_info("=" * 80)
+    
+    # 设置日志状态到所有服务
+    _configure_logging_for_all_services(enable_logging, logger)
     
     # 通过API Gateway测试所有操作
     logger.print_info("⏱️  开始API Gateway延迟测试...")
     
     # 测试所有操作类型
     operations = [
-        ('ListItems', 'fruits', 'apple'),
-        ('PlaceOrder', 'fruits', 'apple'),
-        ('PutItem', 'fruits', 'apple'),
-        ('UpdateItem', 'fruits', 'apple'),
+        ('ListItems', 'kitchen', 'refrigerator'),
+        ('PlaceOrder', 'kitchen', 'refrigerator'),
+        ('PutItem', 'kitchen', 'refrigerator'),
+        ('UpdateItem', 'kitchen', 'refrigerator'),
     ]
     
     for operation, category, subcategory in operations:
@@ -578,8 +592,8 @@ def test_api_gateway_performance(client, logger):
             operation=operation,
             category=category,
             subcategory=subcategory,
-            iterations=30,
-            warmup=2
+            iterations=50,
+            warmup=20
         )
     
     logger.print_info("📈 开始API Gateway吞吐量测试...")
@@ -591,13 +605,48 @@ def test_api_gateway_performance(client, logger):
             category=category,
             subcategory=subcategory,
             concurrency=5,
-            duration_sec=3
+            duration_sec=10
         )
     
-    # 收集结果
-    collect_results(client, "APIGateway")
+    # 收集结果，使用不同的标签区分日志状态
+    test_label = f"APIGateway_{'WithLog' if enable_logging else 'NoLog'}"
+    collect_results(client, test_label)
     
-    logger.print_success("✅ API Gateway性能测试完成!")
+    logger.print_success(f"✅ API Gateway性能测试完成! ({logging_status})")
+
+def _configure_logging_for_all_services(enable_logging, logger):
+    """配置所有服务的日志状态
+    
+    Args:
+        enable_logging: 是否启用日志记录
+        logger: 日志记录器
+    """
+    services = [
+        ('api-gateway', 50050),
+        ('food-service', 50052),
+        ('electronics-service', 50051),
+        ('fresh-service', 50053),
+        ('appliance-service', 50054)
+    ]
+    
+    for service_name, port in services:
+        try:
+            channel = grpc.insecure_channel(f'{service_name}:{port}')
+            stub = warehouse_pb2_grpc.OrderServiceStub(channel)
+            
+            # 发送配置请求
+            request = warehouse_pb2.ConfigureLoggingRequest(enable_logging=enable_logging)
+            response = stub.ConfigureLogging(request)
+            
+            if response.success:
+                status = "启用" if enable_logging else "禁用"
+                logger.print_debug(f"✅ {service_name}: 日志{status}成功")
+            else:
+                logger.print_warning(f"⚠️ {service_name}: 日志配置失败 - {response.message}")
+                
+            channel.close()
+        except Exception as e:
+            logger.print_warning(f"⚠️ {service_name}: 配置日志时出错 - {e}")
 
 def test_logger_service_operations(logger):
     """测试LoggerService的操作"""
@@ -685,25 +734,19 @@ def main():
         client.clear_logs()
         
         logger.print_info("🚀 开始服务组合性能测试")
-        logger.print_info("📋 测试计划: 6个测试场景")
+        logger.print_info("📋 测试计划: len(test_scenarios)个测试场景")
         logger.print_info("")
         
+        # API Gateway性能测试 - 有日志和无日志对比
         test_scenarios = [
-            ("单个底层容器测试", test_single_bottom_container),
-            ("两个底层容器测试", test_two_bottom_containers),
-            ("单个中层容器测试", test_single_middle_container),
-            ("两个中层容器测试", test_two_middle_containers),
-            ("API Gateway性能测试", test_api_gateway_performance),
-            ("LoggerService测试", test_logger_service_operations)
+            ("API Gateway性能测试 (启用日志)", lambda: test_api_gateway_performance(client, logger, enable_logging=True)),
+            ("API Gateway性能测试 (禁用日志)", lambda: test_api_gateway_performance(client, logger, enable_logging=False)),
         ]
         
         for i, (name, test_func) in enumerate(test_scenarios, 1):
-            logger.print_info(f"🔄 [{i}/6] 开始 {name}...")
-            if test_func == test_logger_service_operations:
-                test_func(logger)
-            else:
-                test_func(client, logger)
-            logger.print_info(f"✅ [{i}/6] {name} 完成")
+            logger.print_info(f"🔄 [{i}/{len(test_scenarios)}] 开始 {name}...")
+            test_func()
+            logger.print_info(f"✅ [{i}/{len(test_scenarios)}] {name} 完成")
             logger.print_info("")
         
         logger.print_success("🎉 所有测试场景完成!")
@@ -727,7 +770,6 @@ def main():
         logger.print_warning("Interrupted by user")
     finally:
         client.close()
-
 
 if __name__ == "__main__":
     main()

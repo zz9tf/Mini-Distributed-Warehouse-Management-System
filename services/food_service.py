@@ -28,7 +28,21 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
         self.logger = get_logger('FoodService')
         self.fresh_service_channel = grpc.insecure_channel(f'{fresh_service_host}:{fresh_service_port}')
         self.fresh_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.fresh_service_channel)
+        self.logging_enabled = True  # 默认启用日志
         self.logger.print_success("FoodService initialized")
+    
+    def _log_operation(self, service_name, operation, request_data, response_data, client_ip, success=True, error_message=None):
+        """条件日志记录方法"""
+        if self.logging_enabled:
+            logger_client.log_operation(
+                service_name=service_name,
+                operation=operation,
+                request_data=request_data,
+                response_data=response_data,
+                client_ip=client_ip,
+                success=success,
+                error_message=error_message
+            )
     
     def PlaceOrder(self, request, context):
         """处理下单请求 - 转发给FreshService"""
@@ -45,7 +59,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug("PlaceOrder completed successfully")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="PlaceOrder",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -64,7 +78,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             
             # 记录错误日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="PlaceOrder",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -83,7 +97,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             
             # 记录错误日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="PlaceOrder",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -110,7 +124,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug("PutItem completed successfully")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="PutItem",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -129,7 +143,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             
             # 记录错误日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="PutItem",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -148,7 +162,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             
             # 记录错误日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="PutItem",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -175,7 +189,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug("UpdateItem completed successfully")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="UpdateItem",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -194,7 +208,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             
             # 记录错误日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="UpdateItem",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -213,7 +227,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             
             # 记录错误日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="UpdateItem",
                 request_data={"category": request.category, "subcategory": request.subcategory, "item": request.item},
@@ -242,7 +256,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug("ListItems completed successfully")
             
             # 记录操作日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="ListItems",
                 request_data={"category": request.category, "subcategory": request.subcategory},
@@ -260,7 +274,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: {len(response.items)} items")
             
             # 记录错误日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="ListItems",
                 request_data={"category": request.category, "subcategory": request.subcategory},
@@ -278,7 +292,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Response: {len(response.items)} items")
             
             # 记录错误日志
-            logger_client.log_operation(
+            self._log_operation(
                 service_name="FoodService",
                 operation="ListItems",
                 request_data={"category": request.category, "subcategory": request.subcategory},
@@ -289,6 +303,24 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             
             return response
+    
+    def ConfigureLogging(self, request, context):
+        """配置日志记录状态"""
+        try:
+            self.logging_enabled = request.enable_logging
+            status = "start logging" if self.logging_enabled else "stop logging"
+            self.logger.print_info(f"日志记录已{status}")
+            
+            return warehouse_pb2.ConfigureLoggingResponse(
+                success=True,
+                message=f"日志记录已{status}"
+            )
+        except Exception as e:
+            self.logger.print_error(f"配置日志记录失败: {e}")
+            return warehouse_pb2.ConfigureLoggingResponse(
+                success=False,
+                message=f"Failed to configure logging: {str(e)}"
+            )
     
     def close(self):
         """关闭连接"""
