@@ -28,14 +28,14 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
         """Initialize API Gateway"""
         self.logger = get_logger('APIGateway')
         
-        # 连接中层服务
+        # Connect to middle-layer services
         self.food_service_channel = grpc.insecure_channel(f'{food_service_host}:{food_service_port}')
         self.food_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.food_service_channel)
         
         self.electronics_service_channel = grpc.insecure_channel(f'{electronics_service_host}:{electronics_service_port}')
         self.electronics_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.electronics_service_channel)
         
-        self.logging_enabled = True  # 默认启用日志
+        self.logging_enabled = True  # Enable logging by default
         self.logger.print_success("API Gateway initialized")
         self.logger.print_info(f"FoodService: {food_service_host}:{food_service_port}")
         self.logger.print_info(f"ElectronicsService: {electronics_service_host}:{electronics_service_port}")
@@ -63,7 +63,7 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
         elif category in ['electronics', 'appliance', 'kitchen', 'living']:
             return self.electronics_service_stub
         else:
-            # 默认路由到ElectronicsService
+            # Default route to ElectronicsService
             return self.electronics_service_stub
     
     def PlaceOrder(self, request, context):
@@ -73,7 +73,7 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}, Item: {request.item}")
             self.logger.print_debug(f"Client IP: {context.peer()}")
             
-            # 路由到相应服务
+            # Route to the appropriate service
             target_service = self._route_request(request)
             service_name = "FoodService" if target_service == self.food_service_stub else "ElectronicsService"
             self.logger.print_debug(f"Routing to {service_name}")
@@ -106,7 +106,7 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}, Item: {request.item}")
             self.logger.print_debug(f"Client IP: {context.peer()}")
             
-            # 路由到相应服务
+            # Route to the appropriate service
             target_service = self._route_request(request)
             service_name = "FoodService" if target_service == self.food_service_stub else "ElectronicsService"
             self.logger.print_debug(f"Routing to {service_name}")
@@ -139,7 +139,7 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}, Item: {request.item}")
             self.logger.print_debug(f"Client IP: {context.peer()}")
             
-            # 路由到相应服务
+            # Route to the appropriate service
             target_service = self._route_request(request)
             service_name = "FoodService" if target_service == self.food_service_stub else "ElectronicsService"
             self.logger.print_debug(f"Routing to {service_name}")
@@ -172,7 +172,7 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Category: {request.category}, Subcategory: {request.subcategory}")
             self.logger.print_debug(f"Client IP: {context.peer()}")
             
-            # 路由到相应服务
+            # Route to the appropriate service
             target_service = self._route_request(request)
             service_name = "FoodService" if target_service == self.food_service_stub else "ElectronicsService"
             self.logger.print_debug(f"Routing to {service_name}")
@@ -198,15 +198,15 @@ class APIGateway(warehouse_pb2_grpc.OrderServiceServicer):
         """配置日志记录状态"""
         try:
             self.logging_enabled = request.enable_logging
-            status = "start logging" if self.logging_enabled else "stop logging"
-            self.logger.print_info(f"日志记录已{status}")
+            status = "enabled" if self.logging_enabled else "disabled"
+            self.logger.print_info(f"Logging has been {status}")
             
             return warehouse_pb2.ConfigureLoggingResponse(
                 success=True,
-                message=f"日志记录已{status}"
+                message=f"Logging has been {status}"
             )
         except Exception as e:
-            self.logger.print_error(f"配置日志记录失败: {e}")
+            self.logger.print_error(f"Failed to configure logging: {e}")
             return warehouse_pb2.ConfigureLoggingResponse(
                 success=False,
                 message=f"Failed to configure logging: {str(e)}"

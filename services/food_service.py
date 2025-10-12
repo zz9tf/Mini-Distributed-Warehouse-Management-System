@@ -28,7 +28,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
         self.logger = get_logger('FoodService')
         self.fresh_service_channel = grpc.insecure_channel(f'{fresh_service_host}:{fresh_service_port}')
         self.fresh_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.fresh_service_channel)
-        self.logging_enabled = True  # 默认启用日志
+        self.logging_enabled = True  # Enable logging by default
         self.logger.print_success("FoodService initialized")
     
     def _log_operation(self, service_name, operation, request_data, response_data, client_ip, success=True, error_message=None):
@@ -52,13 +52,13 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Client IP: {context.peer()}")
             self.logger.print_debug("Forwarding to FreshService")
             
-            # 转发给FreshService
+            # Forward to FreshService
             response = self.fresh_service_stub.PlaceOrder(request)
             
             self.logger.print_debug(f"Response from FreshService: status={response.status}, left={response.left}")
             self.logger.print_debug("PlaceOrder completed successfully")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="FoodService",
                 operation="PlaceOrder",
@@ -77,7 +77,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 left=0
             )
             
-            # 记录错误日志
+            # Record error log
             self._log_operation(
                 service_name="FoodService",
                 operation="PlaceOrder",
@@ -96,7 +96,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 left=0
             )
             
-            # 记录错误日志
+            # Record error log
             self._log_operation(
                 service_name="FoodService",
                 operation="PlaceOrder",
@@ -117,13 +117,13 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Client IP: {context.peer()}")
             self.logger.print_debug("Forwarding to FreshService")
             
-            # 转发给FreshService
+            # Forward to FreshService
             response = self.fresh_service_stub.PutItem(request)
             
             self.logger.print_debug(f"Response from FreshService: success={response.success}, message={response.message}")
             self.logger.print_debug("PutItem completed successfully")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="FoodService",
                 operation="PutItem",
@@ -142,7 +142,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 message="Service unavailable"
             )
             
-            # 记录错误日志
+            # Record error log
             self._log_operation(
                 service_name="FoodService",
                 operation="PutItem",
@@ -161,7 +161,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             
-            # 记录错误日志
+            # Record error log
             self._log_operation(
                 service_name="FoodService",
                 operation="PutItem",
@@ -182,13 +182,13 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Client IP: {context.peer()}")
             self.logger.print_debug("Forwarding to FreshService")
             
-            # 转发给FreshService
+            # Forward to FreshService
             response = self.fresh_service_stub.UpdateItem(request)
             
             self.logger.print_debug(f"Response from FreshService: success={response.success}, message={response.message}")
             self.logger.print_debug("UpdateItem completed successfully")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="FoodService",
                 operation="UpdateItem",
@@ -207,7 +207,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 message="Service unavailable"
             )
             
-            # 记录错误日志
+            # Record error log
             self._log_operation(
                 service_name="FoodService",
                 operation="UpdateItem",
@@ -226,7 +226,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 message=f"Error: {str(e)}"
             )
             
-            # 记录错误日志
+            # Record error log
             self._log_operation(
                 service_name="FoodService",
                 operation="UpdateItem",
@@ -247,7 +247,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Client IP: {context.peer()}")
             self.logger.print_debug("Forwarding to FreshService")
             
-            # 转发给FreshService
+            # Forward to FreshService
             response = self.fresh_service_stub.ListItems(request)
             
             self.logger.print_debug(f"Response from FreshService: {len(response.items)} items")
@@ -255,7 +255,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
                 self.logger.print_debug(f"Item {i+1}: {item}")
             self.logger.print_debug("ListItems completed successfully")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="FoodService",
                 operation="ListItems",
@@ -273,7 +273,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             response = warehouse_pb2.ListItemsResponse(items=[])
             self.logger.print_debug(f"Response: {len(response.items)} items")
             
-            # 记录错误日志
+            # Record error log
             self._log_operation(
                 service_name="FoodService",
                 operation="ListItems",
@@ -291,7 +291,7 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
             response = warehouse_pb2.ListItemsResponse(items=[])
             self.logger.print_debug(f"Response: {len(response.items)} items")
             
-            # 记录错误日志
+            # Record error log
             self._log_operation(
                 service_name="FoodService",
                 operation="ListItems",
@@ -308,15 +308,15 @@ class FoodService(warehouse_pb2_grpc.OrderServiceServicer):
         """配置日志记录状态"""
         try:
             self.logging_enabled = request.enable_logging
-            status = "start logging" if self.logging_enabled else "stop logging"
-            self.logger.print_info(f"日志记录已{status}")
+            status = "enabled" if self.logging_enabled else "disabled"
+            self.logger.print_info(f"Logging has been {status}")
             
             return warehouse_pb2.ConfigureLoggingResponse(
                 success=True,
-                message=f"日志记录已{status}"
+                message=f"Logging has been {status}"
             )
         except Exception as e:
-            self.logger.print_error(f"配置日志记录失败: {e}")
+            self.logger.print_error(f"Failed to configure logging: {e}")
             return warehouse_pb2.ConfigureLoggingResponse(
                 success=False,
                 message=f"Failed to configure logging: {str(e)}"

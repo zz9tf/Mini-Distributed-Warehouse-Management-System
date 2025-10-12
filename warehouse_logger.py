@@ -23,7 +23,7 @@ class WarehouseLogger:
         """
         self.logger = logging.getLogger(name)
         
-        # 设置日志级别
+        # Set log level
         if level is None:
             level = os.getenv('LOG_LEVEL', 'INFO').upper()
         
@@ -38,13 +38,13 @@ class WarehouseLogger:
         log_level = level_map.get(level, logging.INFO)
         self.logger.setLevel(log_level)
         
-        # 避免重复添加handler
+        # Avoid adding duplicate handlers
         if not self.logger.handlers:
-            # 创建控制台handler
+            # Create console handler
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setLevel(log_level)
             
-            # 创建格式器
+            # Create formatter
             formatter = logging.Formatter(
                 '%(asctime)s | %(name)s | %(levelname)s | %(message)s',
                 datefmt='%H:%M:%S'
@@ -53,7 +53,7 @@ class WarehouseLogger:
             
             self.logger.addHandler(console_handler)
         
-        # 确保日志器不会传播到父级
+        # Ensure logger does not propagate to parents
         self.logger.propagate = False
     
     def debug(self, message: str):
@@ -76,7 +76,7 @@ class WarehouseLogger:
         """CRITICAL级别日志 - 严重错误"""
         self.logger.critical(message)
     
-    # 便捷方法，用于兼容原有的print风格
+    # Convenience methods to mimic original print-style logging
     def print_debug(self, message: str):
         """DEBUG级别的print风格日志"""
         self.debug(f"🔍 {message}")
@@ -102,7 +102,7 @@ class WarehouseLogger:
         self.critical(f"🚨 {message}")
 
 
-# 全局日志器实例
+# Global logger instance
 def get_logger(name: str) -> WarehouseLogger:
     """
     获取日志器实例
@@ -116,7 +116,7 @@ def get_logger(name: str) -> WarehouseLogger:
     return WarehouseLogger(name)
 
 
-# 便捷函数
+# Convenience helper functions
 def debug_log(module_name: str, message: str):
     """快速DEBUG日志"""
     logger = get_logger(module_name)

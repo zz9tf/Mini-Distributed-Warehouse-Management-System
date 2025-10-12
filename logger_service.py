@@ -31,7 +31,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
         self.lock = threading.Lock()
         self.log_file = "operation_log.json"
         
-        # 加载现有日志
+        # Load existing logs
         self._load_logs()
         self.logger.print_debug("📊 LoggerService initialized")
     
@@ -56,7 +56,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
         try:
             timestamp = datetime.now().isoformat()
             
-            # 解析请求和响应数据
+            # Parse request and response data
             try:
                 request_data = json.loads(request.request_data) if request.request_data else {}
             except json.JSONDecodeError:
@@ -81,10 +81,10 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
             with self.lock:
                 self.logs.append(log_entry)
             
-            # 异步保存，避免阻塞
+            # Save asynchronously to avoid blocking
             threading.Thread(target=self._save_logs, daemon=True).start()
             
-            # 打印到控制台
+            # Log to console
             status_emoji = "✅" if request.success else "❌"
             self.logger.print_debug(f"📝 {status_emoji} [{timestamp}] {request.service_name} - {request.operation}")
             if request_data:
@@ -112,22 +112,22 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
             with self.lock:
                 filtered_logs = self.logs.copy()
             
-            # 按服务过滤
+            # Filter by service
             if request.service_name:
                 filtered_logs = [log for log in filtered_logs if log['service'] == request.service_name]
             
-            # 按操作过滤
+            # Filter by operation
             if request.operation:
                 filtered_logs = [log for log in filtered_logs if log['operation'] == request.operation]
             
-            # 按时间排序（最新的在前）
+            # Sort by time (most recent first)
             filtered_logs = sorted(filtered_logs, key=lambda x: x['timestamp'], reverse=True)
             
-            # 限制数量
+            # Limit result count
             limit = request.limit if request.limit > 0 else 50
             filtered_logs = filtered_logs[:limit]
             
-            # 转换为 protobuf 格式
+            # Convert to protobuf format
             log_entries = []
             for log in filtered_logs:
                 entry = warehouse_pb2.LogEntry(
@@ -164,7 +164,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
                 failed_operations = total_operations - successful_operations
                 success_rate = (successful_operations / total_operations * 100) if total_operations > 0 else 0
                 
-                # 按服务统计
+                # Aggregate by service
                 service_stats = {}
                 for log in self.logs:
                     service = log['service']
@@ -176,7 +176,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
                     else:
                         service_stats[service]['failed'] += 1
                 
-                # 按操作统计
+                # Aggregate by operation
                 operation_stats = {}
                 for log in self.logs:
                     operation = log['operation']
@@ -188,7 +188,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
                     else:
                         operation_stats[operation]['failed'] += 1
                 
-                # 转换为 protobuf 格式
+                # Convert to protobuf format
                 service_stats_pb = []
                 for service, data in service_stats.items():
                     service_success_rate = (data['success'] / data['total'] * 100) if data['total'] > 0 else 0
@@ -239,7 +239,7 @@ class LoggerService(warehouse_pb2_grpc.LoggerServiceServicer):
                 cleared_count = len(self.logs)
                 self.logs.clear()
             
-            # 清空日志文件
+            # Clear log file
             with open(self.log_file, 'w', encoding='utf-8') as f:
                 json.dump([], f, ensure_ascii=False, indent=2)
             

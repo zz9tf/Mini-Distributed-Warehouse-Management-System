@@ -36,7 +36,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                 "coffee_table": 4
             }
         }
-        self.logging_enabled = True  # 默认启用日志
+        self.logging_enabled = True  # Enable logging by default
         self.logger.print_debug("🏠 ApplianceService initialized")
     
     def _log_operation(self, service_name, operation, request_data, response_data, client_ip, success=True, error_message=None):
@@ -65,7 +65,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"   📥 Item: {item}")
             self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
             
-            # 检查库存
+            # Check inventory
             if (category in self.inventory and 
                 subcategory in self.inventory[category]):
                 
@@ -73,7 +73,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                 self.logger.print_debug(f"   📊 Current stock: {current_stock}")
                 
                 if current_stock > item:
-                    # 减少库存
+                    # Decrease inventory
                     self.inventory[category][subcategory] -= item
                     new_stock = self.inventory[category][subcategory]
                     
@@ -84,7 +84,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                     )
                     self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
                     
-                    # 记录操作日志
+                    # Record operation log
                     self._log_operation(
                         service_name="ApplianceService",
                         operation="PlaceOrder",
@@ -103,7 +103,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
                     )
                     self.logger.print_debug(f"Response: status={response.status}, left={response.left}")
                     
-                    # 记录操作日志
+                    # Record operation log
                     self._log_operation(
                         service_name="ApplianceService",
                         operation="PlaceOrder",
@@ -165,7 +165,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="ApplianceService",
                 operation="PutItem",
@@ -186,7 +186,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="ApplianceService",
                 operation="PutItem",
@@ -234,7 +234,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="ApplianceService",
                 operation="UpdateItem",
@@ -255,7 +255,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             )
             self.logger.print_debug(f"Response: success={response.success}, message={response.message}")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="ApplianceService",
                 operation="UpdateItem",
@@ -291,7 +291,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             response = warehouse_pb2.ListItemsResponse(items=items)
             self.logger.print_debug(f"Response: {len(response.items)} items")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="ApplianceService",
                 operation="ListItems",
@@ -309,7 +309,7 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
             response = warehouse_pb2.ListItemsResponse(items=[])
             self.logger.print_debug(f"Response: {len(response.items)} items")
             
-            # 记录操作日志
+            # Record operation log
             self._log_operation(
                 service_name="ApplianceService",
                 operation="ListItems",
@@ -326,18 +326,18 @@ class ApplianceService(warehouse_pb2_grpc.OrderServiceServicer):
         """配置日志记录状态"""
         try:
             self.logging_enabled = request.enable_logging
-            status = "启用" if self.logging_enabled else "禁用"
-            self.logger.print_info(f"日志记录已{status}")
+            status = "enabled" if self.logging_enabled else "disabled"
+            self.logger.print_info(f"Logging has been {status}")
             
             return warehouse_pb2.ConfigureLoggingResponse(
                 success=True,
-                message=f"日志记录已{status}"
+                message=f"Logging has been {status}"
             )
         except Exception as e:
-            self.logger.print_error(f"配置日志记录失败: {e}")
+            self.logger.print_error(f"Failed to configure logging: {e}")
             return warehouse_pb2.ConfigureLoggingResponse(
                 success=False,
-                message=f"配置失败: {str(e)}"
+                message=f"Configuration failed: {str(e)}"
             )
 
 

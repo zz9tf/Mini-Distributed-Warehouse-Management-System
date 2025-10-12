@@ -28,7 +28,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
         self.logger = get_logger('ElectronicsService')
         self.appliance_service_channel = grpc.insecure_channel(f'{appliance_service_host}:{appliance_service_port}')
         self.appliance_service_stub = warehouse_pb2_grpc.OrderServiceStub(self.appliance_service_channel)
-        self.logging_enabled = True  # 默认启用日志
+        self.logging_enabled = True  # Enable logging by default
         self.logger.print_success("ElectronicsService initialized")
     
     def PlaceOrder(self, request, context):
@@ -39,7 +39,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"Client IP: {context.peer()}")
             self.logger.print_debug("Forwarding to ApplianceService")
             
-            # 转发给ApplianceService
+            # Forward to ApplianceService
             response = self.appliance_service_stub.PlaceOrder(request)
             
             self.logger.print_debug(f"Response from ApplianceService: status={response.status}, left={response.left}")
@@ -80,7 +80,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
             self.logger.print_debug(f"   🔄 [FORWARDING] Sending to ApplianceService...")
             
-            # 转发给ApplianceService
+            # Forward to ApplianceService
             response = self.appliance_service_stub.PutItem(request)
             
             self.logger.print_debug(f"   📨 [RECEIVED] Response from ApplianceService:")
@@ -121,7 +121,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
             self.logger.print_debug(f"   🔄 [FORWARDING] Sending to ApplianceService...")
             
-            # 转发给ApplianceService
+            # Forward to ApplianceService
             response = self.appliance_service_stub.UpdateItem(request)
             
             self.logger.print_debug(f"   📨 [RECEIVED] Response from ApplianceService:")
@@ -161,7 +161,7 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
             self.logger.print_debug(f"   📥 Client IP: {context.peer()}")
             self.logger.print_debug(f"   🔄 [FORWARDING] Sending to ApplianceService...")
             
-            # 转发给ApplianceService
+            # Forward to ApplianceService
             response = self.appliance_service_stub.ListItems(request)
             
             self.logger.print_debug(f"   📨 [RECEIVED] Response from ApplianceService:")
@@ -191,18 +191,18 @@ class ElectronicsService(warehouse_pb2_grpc.OrderServiceServicer):
         """配置日志记录状态"""
         try:
             self.logging_enabled = request.enable_logging
-            status = "启用" if self.logging_enabled else "禁用"
-            self.logger.print_info(f"日志记录已{status}")
+            status = "enabled" if self.logging_enabled else "disabled"
+            self.logger.print_info(f"Logging has been {status}")
             
             return warehouse_pb2.ConfigureLoggingResponse(
                 success=True,
-                message=f"日志记录已{status}"
+                message=f"Logging has been {status}"
             )
         except Exception as e:
-            self.logger.print_error(f"配置日志记录失败: {e}")
+            self.logger.print_error(f"Failed to configure logging: {e}")
             return warehouse_pb2.ConfigureLoggingResponse(
                 success=False,
-                message=f"配置失败: {str(e)}"
+                message=f"Configuration failed: {str(e)}"
             )
     
     def close(self):
