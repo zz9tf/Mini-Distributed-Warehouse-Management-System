@@ -195,7 +195,7 @@ client_test → api-gateway → food-service → fresh-service
 
 ### Latency Results
 
-| Test Scenario      | Service    | Operation  | Count | Avg(ms) | Min(ms) | P50(ms) | P90(ms) | P95(ms) | P99(ms) | Max(ms) | Success | Failure |
+| Test Scenario      | Service    | Operation  | Count | Avg(µs) | Min(µs) | P50(µs) | P90(µs) | P95(µs) | P99(µs) | Max(µs) | Success | Failure |
 | ------------------ | ---------- | ---------- | ----- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- |
 | APIGateway_NoLog   | APIGateway | ListItems  | 50    | 896.17  | 763.04  | 860.46  | 1076.30 | 1096.22 | 1160.64 | 1199.17 | 50      | 0       |
 | APIGateway_NoLog   | APIGateway | PlaceOrder | 50    | 878.40  | 677.21  | 830.17  | 1054.76 | 1146.29 | 1432.43 | 1616.04 | 50      | 0       |

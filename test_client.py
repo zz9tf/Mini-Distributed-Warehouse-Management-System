@@ -104,19 +104,19 @@ class WarehouseTestClient:
         d1 = values_sorted[c] * (k - f)
         return float(d0 + d1)
 
-    def _print_latency_stats(self, latencies_ms, label: str):
+    def _print_latency_stats(self, latencies_us, label: str):
         """打印延迟统计"""
-        if not latencies_ms:
+        if not latencies_us:
             self.logger.print_debug(f"{label}: no samples")
             return
-        avg = statistics.mean(latencies_ms)
-        p50 = WarehouseTestClient._percentile(latencies_ms, 50)
-        p90 = WarehouseTestClient._percentile(latencies_ms, 90)
-        p95 = WarehouseTestClient._percentile(latencies_ms, 95)
-        p99 = WarehouseTestClient._percentile(latencies_ms, 99)
-        mn = min(latencies_ms)
-        mx = max(latencies_ms)
-        self.logger.print_info(f"{label} -> count={len(latencies_ms)}, avg={avg:.2f}ms, min={mn:.2f}ms, p50={p50:.2f}ms, p90={p90:.2f}ms, p95={p95:.2f}ms, p99={p99:.2f}ms, max={mx:.2f}ms")
+        avg = statistics.mean(latencies_us)
+        p50 = WarehouseTestClient._percentile(latencies_us, 50)
+        p90 = WarehouseTestClient._percentile(latencies_us, 90)
+        p95 = WarehouseTestClient._percentile(latencies_us, 95)
+        p99 = WarehouseTestClient._percentile(latencies_us, 99)
+        mn = min(latencies_us)
+        mx = max(latencies_us)
+        self.logger.print_info(f"{label} -> count={len(latencies_us)}, avg={avg:.2f}µs, min={mn:.2f}µs, p50={p50:.2f}µs, p90={p90:.2f}µs, p95={p95:.2f}µs, p99={p99:.2f}µs, max={mx:.2f}µs")
 
     # ========= 延迟测试 =========
     def latency_test(self, operation: str, category: str = 'fruits', subcategory: str = 'apple', iterations: int = 100, warmup: int = 5, sleep_between: float = 0.0):
@@ -154,39 +154,39 @@ class WarehouseTestClient:
             if sleep_between > 0:
                 time.sleep(sleep_between)
 
-        latencies_ms = []
+        latencies_us = []
         successes = 0
         failures = 0
         for i in range(iterations):
             start = time.perf_counter_ns()
             try:
                 call_func()
-                elapsed_ms = (time.perf_counter_ns() - start) /1000
-                latencies_ms.append(elapsed_ms)
+                elapsed_us = (time.perf_counter_ns() - start) / 1000  # 纳秒转微秒
+                latencies_us.append(elapsed_us)
                 successes += 1
             except Exception as e:
-                elapsed_ms = (time.perf_counter_ns() - start) / 1000
-                latencies_ms.append(elapsed_ms)
+                elapsed_us = (time.perf_counter_ns() - start) / 1000
+                latencies_us.append(elapsed_us)
                 failures += 1
                 self.logger.print_warning(f"error@{i+1}: {e}")
             if sleep_between > 0:
                 time.sleep(sleep_between)
 
-        self._print_latency_stats(latencies_ms, label=f"Latency({operation})")
+        self._print_latency_stats(latencies_us, label=f"Latency({operation})")
         self.logger.print_debug(f"success={successes}, failure={failures}")
         
         # 存储延迟测试结果
-        if latencies_ms:
+        if latencies_us:
             result_key = f"{self.host}_{operation}"
             self.latency_results[result_key] = {
-                'count': len(latencies_ms),
-                'avg': sum(latencies_ms) / len(latencies_ms),
-                'min': min(latencies_ms),
-                'p50': WarehouseTestClient._percentile(latencies_ms, 50),
-                'p90': WarehouseTestClient._percentile(latencies_ms, 90),
-                'p95': WarehouseTestClient._percentile(latencies_ms, 95),
-                'p99': WarehouseTestClient._percentile(latencies_ms, 99),
-                'max': max(latencies_ms),
+                'count': len(latencies_us),
+                'avg': sum(latencies_us) / len(latencies_us),
+                'min': min(latencies_us),
+                'p50': WarehouseTestClient._percentile(latencies_us, 50),
+                'p90': WarehouseTestClient._percentile(latencies_us, 90),
+                'p95': WarehouseTestClient._percentile(latencies_us, 95),
+                'p99': WarehouseTestClient._percentile(latencies_us, 99),
+                'max': max(latencies_us),
                 'success': successes,
                 'failure': failures
             }
@@ -376,7 +376,7 @@ def print_global_latency_table(logger):
     
     
     # 表头
-    header = f"{'测试场景':<20} {'服务':<15} {'操作':<12} {'Count':<8} {'Avg(ms)':<10} {'Min(ms)':<10} {'P50(ms)':<10} {'P90(ms)':<10} {'P95(ms)':<10} {'P99(ms)':<10} {'Max(ms)':<10} {'Success':<8} {'Failure':<8}"
+    header = f"{'测试场景':<20} {'服务':<15} {'操作':<12} {'Count':<8} {'Avg(µs)':<10} {'Min(µs)':<10} {'P50(µs)':<10} {'P90(µs)':<10} {'P95(µs)':<10} {'P99(µs)':<10} {'Max(µs)':<10} {'Success':<8} {'Failure':<8}"
     logger.print_info(header)
     logger.print_info("-" * 120)
     
